@@ -10,7 +10,7 @@ struct TypeWhisperApp: App {
         MenuBarExtra("TypeWhisper", systemImage: "waveform") {
             MenuBarView()
         }
-        .menuBarExtraStyle(.window)
+        .menuBarExtraStyle(.menu)
 
         Settings {
             SettingsView()
