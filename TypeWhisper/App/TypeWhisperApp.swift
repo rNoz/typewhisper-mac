@@ -1,7 +1,9 @@
 import SwiftUI
+import Combine
 
 @main
 struct TypeWhisperApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var serviceContainer = ServiceContainer.shared
 
     var body: some Scene {
@@ -22,5 +24,15 @@ struct TypeWhisperApp: App {
         Task { @MainActor in
             await ServiceContainer.shared.initialize()
         }
+    }
+}
+
+class AppDelegate: NSObject, NSApplicationDelegate {
+    private var overlayPanel: DictationOverlayPanel?
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        let panel = DictationOverlayPanel()
+        panel.startObserving()
+        overlayPanel = panel
     }
 }

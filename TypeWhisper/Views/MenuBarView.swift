@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MenuBarView: View {
     @ObservedObject private var modelManager = ModelManagerViewModel.shared
+    @ObservedObject private var dictation = DictationViewModel.shared
 
     var body: some View {
         VStack(spacing: 8) {
@@ -30,6 +31,49 @@ struct MenuBarView: View {
                     systemImage: "exclamationmark.triangle.fill"
                 )
                 .foregroundStyle(.orange)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal)
+            }
+
+            // Dictation status
+            if case .recording = dictation.state {
+                Label(
+                    String(localized: "Recording..."),
+                    systemImage: "record.circle.fill"
+                )
+                .foregroundStyle(.red)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal)
+            } else if case .processing = dictation.state {
+                HStack(spacing: 6) {
+                    ProgressView()
+                        .controlSize(.small)
+                    Text(String(localized: "Transcribing..."))
+                        .font(.caption)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal)
+            }
+
+            // Permission warnings
+            if dictation.needsMicPermission {
+                Label(
+                    String(localized: "Microphone access needed"),
+                    systemImage: "mic.slash"
+                )
+                .foregroundStyle(.orange)
+                .font(.caption)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal)
+            }
+
+            if dictation.needsAccessibilityPermission {
+                Label(
+                    String(localized: "Accessibility access needed"),
+                    systemImage: "lock.shield"
+                )
+                .foregroundStyle(.orange)
+                .font(.caption)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal)
             }
