@@ -2,7 +2,7 @@ import Foundation
 import AVFoundation
 
 /// Converts audio/video files to 16kHz mono Float32 PCM samples for transcription.
-final class AudioFileService {
+final class AudioFileService: Sendable {
 
     enum AudioFileError: LocalizedError {
         case fileNotFound

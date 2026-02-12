@@ -1,6 +1,6 @@
 import Foundation
 
-final class APIHandlers: Sendable {
+final class APIHandlers: @unchecked Sendable {
     private let modelManager: ModelManagerService
     private let audioFileService: AudioFileService
 
@@ -18,7 +18,7 @@ final class APIHandlers: Sendable {
     // MARK: - POST /v1/transcribe
 
     private func handleTranscribe(_ request: HTTPRequest) async -> HTTPResponse {
-        let isReady = await modelManager.activeEngine != nil
+        let isReady = await modelManager.isEngineLoaded
         guard isReady else {
             return .error(status: 503, message: "No model loaded. Load a model in TypeWhisper first.")
         }
@@ -110,7 +110,7 @@ final class APIHandlers: Sendable {
     private func handleStatus(_ request: HTTPRequest) async -> HTTPResponse {
         let engine = await modelManager.selectedEngine
         let modelId = await modelManager.selectedModelId
-        let isReady = await modelManager.activeEngine != nil
+        let isReady = await modelManager.isEngineLoaded
 
         struct StatusResponse: Encodable {
             let status: String

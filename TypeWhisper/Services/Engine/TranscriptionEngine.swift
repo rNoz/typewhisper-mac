@@ -1,6 +1,6 @@
 import Foundation
 
-protocol TranscriptionEngine {
+protocol TranscriptionEngine: Sendable {
     var engineType: EngineType { get }
     var isModelLoaded: Bool { get }
     var supportedLanguages: [String] { get }
@@ -8,7 +8,7 @@ protocol TranscriptionEngine {
     var supportsTranslation: Bool { get }
 
     /// Load (and optionally download) a model. Progress callback receives (fraction, bytesPerSecond?).
-    func loadModel(_ model: ModelInfo, progress: @escaping (Double, Double?) -> Void) async throws
+    func loadModel(_ model: ModelInfo, progress: @Sendable @escaping (Double, Double?) -> Void) async throws
     func unloadModel()
 
     func transcribe(
@@ -23,7 +23,7 @@ protocol TranscriptionEngine {
         audioSamples: [Float],
         language: String?,
         task: TranscriptionTask,
-        onProgress: @escaping (String) -> Bool
+        onProgress: @Sendable @escaping (String) -> Bool
     ) async throws -> TranscriptionResult
 }
 
@@ -33,7 +33,7 @@ extension TranscriptionEngine {
         audioSamples: [Float],
         language: String?,
         task: TranscriptionTask,
-        onProgress: @escaping (String) -> Bool
+        onProgress: @Sendable @escaping (String) -> Bool
     ) async throws -> TranscriptionResult {
         try await transcribe(audioSamples: audioSamples, language: language, task: task)
     }

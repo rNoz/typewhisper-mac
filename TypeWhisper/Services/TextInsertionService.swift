@@ -26,7 +26,7 @@ final class TextInsertionService {
 
     func requestAccessibilityPermission() {
         // Try the prompt first
-        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue(): true] as CFDictionary
+        let options = ["AXTrustedCheckOptionPrompt" as CFString: true] as CFDictionary
         AXIsProcessTrustedWithOptions(options)
 
         // Also open System Settings directly (prompt alone may not work in sandbox)

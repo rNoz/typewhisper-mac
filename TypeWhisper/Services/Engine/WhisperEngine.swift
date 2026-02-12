@@ -1,7 +1,7 @@
 import Foundation
 import WhisperKit
 
-final class WhisperEngine: TranscriptionEngine {
+final class WhisperEngine: TranscriptionEngine, @unchecked Sendable {
     let engineType: EngineType = .whisper
     let supportsStreaming = true
     let supportsTranslation = true
@@ -18,7 +18,7 @@ final class WhisperEngine: TranscriptionEngine {
     /// Callback to report loading phase changes (loading, prewarming, etc.)
     var onPhaseChange: ((String?) -> Void)?
 
-    func loadModel(_ model: ModelInfo, progress: @escaping (Double, Double?) -> Void) async throws {
+    func loadModel(_ model: ModelInfo, progress: @Sendable @escaping (Double, Double?) -> Void) async throws {
         guard model.engineType == .whisper else {
             throw TranscriptionEngineError.modelLoadFailed("Not a Whisper model")
         }
@@ -149,7 +149,7 @@ final class WhisperEngine: TranscriptionEngine {
         audioSamples: [Float],
         language: String?,
         task: TranscriptionTask,
-        onProgress: @escaping (String) -> Bool
+        onProgress: @Sendable @escaping (String) -> Bool
     ) async throws -> TranscriptionResult {
         guard let whisperKit else {
             throw TranscriptionEngineError.modelNotLoaded

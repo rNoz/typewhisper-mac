@@ -1,7 +1,7 @@
 import Foundation
 import FluidAudio
 
-final class ParakeetEngine: TranscriptionEngine {
+final class ParakeetEngine: TranscriptionEngine, @unchecked Sendable {
     let engineType: EngineType = .parakeet
     let supportsStreaming = false
     let supportsTranslation = false
@@ -14,7 +14,7 @@ final class ParakeetEngine: TranscriptionEngine {
         ["bg", "hr", "cs", "da", "nl", "en", "et", "fi", "fr", "de", "el", "hu", "it", "lv", "lt", "mt", "pl", "pt", "ro", "sk", "sl", "es", "sv", "ru", "uk"]
     }
 
-    func loadModel(_ model: ModelInfo, progress: @escaping (Double, Double?) -> Void) async throws {
+    func loadModel(_ model: ModelInfo, progress: @Sendable @escaping (Double, Double?) -> Void) async throws {
         guard model.engineType == .parakeet else {
             throw TranscriptionEngineError.modelLoadFailed("Not a Parakeet model")
         }

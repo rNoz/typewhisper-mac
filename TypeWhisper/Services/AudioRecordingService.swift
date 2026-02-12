@@ -3,8 +3,7 @@ import Foundation
 import Combine
 
 /// Captures microphone audio via AVAudioEngine and converts to 16kHz mono Float32 samples.
-@MainActor
-final class AudioRecordingService: ObservableObject {
+final class AudioRecordingService: ObservableObject, @unchecked Sendable {
 
     enum AudioRecordingError: LocalizedError {
         case microphonePermissionDenied
@@ -41,7 +40,7 @@ final class AudioRecordingService: ObservableObject {
     private let bufferLock = NSLock()
     private var silenceStart: Date?
 
-    private static let targetSampleRate: Double = 16000
+    static let targetSampleRate: Double = 16000
 
     var hasMicrophonePermission: Bool {
         AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
@@ -185,7 +184,7 @@ final class AudioRecordingService: ObservableObject {
         let now = Date()
         let capturedSilenceStart = silenceStart
 
-        Task { @MainActor [weak self] in
+        DispatchQueue.main.async { [weak self] in
             guard let self else { return }
             self.audioLevel = normalizedLevel
 

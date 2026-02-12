@@ -308,7 +308,7 @@ final class DictationViewModel: ObservableObject {
                             task: streamTask,
                             engineOverride: streamEngineOverride,
                             onProgress: { [weak self] text in
-                                guard let self, self.state == .recording else { return false }
+                                guard let self, !Task.isCancelled else { return false }
                                 let stable = Self.stabilizeText(confirmed: confirmed, new: text)
                                 DispatchQueue.main.async {
                                     self.partialText = stable
@@ -340,7 +340,7 @@ final class DictationViewModel: ObservableObject {
     }
 
     /// Keeps confirmed text stable and only appends new content.
-    private static func stabilizeText(confirmed: String, new: String) -> String {
+    nonisolated private static func stabilizeText(confirmed: String, new: String) -> String {
         let new = new.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !confirmed.isEmpty else { return new }
         guard !new.isEmpty else { return confirmed }

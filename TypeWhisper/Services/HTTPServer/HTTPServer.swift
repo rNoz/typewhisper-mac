@@ -1,7 +1,7 @@
 import Foundation
 import Network
 
-final class HTTPServer {
+final class HTTPServer: @unchecked Sendable {
     private let router: APIRouter
     private var listener: NWListener?
     private let serverQueue = DispatchQueue(label: "com.typewhisper.httpserver")

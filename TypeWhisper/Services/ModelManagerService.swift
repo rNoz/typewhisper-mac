@@ -30,6 +30,10 @@ final class ModelManagerService: ObservableObject {
         activeEngine
     }
 
+    var isEngineLoaded: Bool {
+        activeEngine != nil
+    }
+
     func engine(for type: EngineType) -> any TranscriptionEngine {
         switch type {
         case .whisper: whisperEngine
@@ -143,7 +147,7 @@ final class ModelManagerService: ObservableObject {
         language: String?,
         task: TranscriptionTask,
         engineOverride: EngineType? = nil,
-        onProgress: @escaping (String) -> Bool
+        onProgress: @Sendable @escaping (String) -> Bool
     ) async throws -> TranscriptionResult {
         guard let engine = resolveEngine(override: engineOverride) else {
             throw TranscriptionEngineError.modelNotLoaded
