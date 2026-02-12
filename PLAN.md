@@ -85,12 +85,12 @@ typewhisper/
 6. ✅ Settings: Dictation tab with hotkey recorder + permission management
 7. ✅ MenuBarView: dictation status + permission warnings
 
-### Phase 3: Streaming + Polish
+### Phase 3: Streaming + Polish ✅
 
-1. Real-time streaming with WhisperKit
-2. Show partial results in overlay
-3. Silence detection
-4. Whisper mode (gain boost)
+1. ✅ Real-time streaming with WhisperKit (periodic buffer transcription + TranscriptionCallback)
+2. ✅ Show partial results in overlay (dynamic panel sizing, scrollable text)
+3. ✅ Silence detection (auto-stop after 2s in toggle mode, engine-agnostic)
+4. ✅ Whisper mode (gain boost 4x, Settings toggle, persisted in UserDefaults)
 
 ### Phase 4: XPC Integration
 
