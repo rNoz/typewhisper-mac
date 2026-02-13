@@ -4,38 +4,54 @@ import KeyboardShortcuts
 struct SettingsView: View {
     var body: some View {
         TabView {
-            Tab(String(localized: "General"), systemImage: "gear") {
-                GeneralSettingsView()
-            }
-            Tab(String(localized: "Models"), systemImage: "square.and.arrow.down") {
-                ModelManagerView()
-            }
-            Tab(String(localized: "Transcription"), systemImage: "text.bubble") {
-                TranscriptionSettingsView()
-            }
-            Tab(String(localized: "Dictation"), systemImage: "mic.fill") {
-                DictationSettingsView()
-            }
-            Tab(String(localized: "File Transcription"), systemImage: "doc.text") {
-                FileTranscriptionView()
-            }
-            Tab(String(localized: "History"), systemImage: "clock.arrow.circlepath") {
-                HistoryView()
-            }
-            Tab(String(localized: "Dictionary"), systemImage: "book.closed") {
-                DictionarySettingsView()
-            }
-            Tab(String(localized: "Snippets"), systemImage: "text.badge.plus") {
-                SnippetsSettingsView()
-            }
-            Tab(String(localized: "Profiles"), systemImage: "person.crop.rectangle.stack") {
-                ProfilesSettingsView()
-            }
-            Tab(String(localized: "API Server"), systemImage: "network") {
-                APISettingsView()
-            }
+            SettingsMainTabs()
         }
-        .frame(minWidth: 550, minHeight: 400)
+        .tabViewStyle(.sidebarAdaptable)
+        .frame(minWidth: 700, idealWidth: 750, minHeight: 550, idealHeight: 600)
+    }
+}
+
+private struct SettingsMainTabs: TabContent {
+    var body: some TabContent<Never> {
+        Tab(String(localized: "Home"), systemImage: "house") {
+            HomeSettingsView()
+        }
+        Tab(String(localized: "General"), systemImage: "gear") {
+            GeneralSettingsView()
+        }
+        Tab(String(localized: "Models"), systemImage: "square.and.arrow.down") {
+            ModelManagerView()
+        }
+        Tab(String(localized: "Transcription"), systemImage: "text.bubble") {
+            TranscriptionSettingsView()
+        }
+        Tab(String(localized: "Dictation"), systemImage: "mic.fill") {
+            DictationSettingsView()
+        }
+        Tab(String(localized: "File Transcription"), systemImage: "doc.text") {
+            FileTranscriptionView()
+        }
+        Tab(String(localized: "History"), systemImage: "clock.arrow.circlepath") {
+            HistoryView()
+        }
+        SettingsExtraTabs()
+    }
+}
+
+private struct SettingsExtraTabs: TabContent {
+    var body: some TabContent<Never> {
+        Tab(String(localized: "Dictionary"), systemImage: "book.closed") {
+            DictionarySettingsView()
+        }
+        Tab(String(localized: "Snippets"), systemImage: "text.badge.plus") {
+            SnippetsSettingsView()
+        }
+        Tab(String(localized: "Profiles"), systemImage: "person.crop.rectangle.stack") {
+            ProfilesSettingsView()
+        }
+        Tab(String(localized: "API Server"), systemImage: "network") {
+            APISettingsView()
+        }
     }
 }
 

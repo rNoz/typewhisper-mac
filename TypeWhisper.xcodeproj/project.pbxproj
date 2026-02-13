@@ -69,6 +69,12 @@
 		AA00000000000000000083 /* DictionarySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000083 /* DictionarySettingsView.swift */; };
 		AA00000000000000000084 /* SnippetsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000084 /* SnippetsViewModel.swift */; };
 		AA00000000000000000085 /* SnippetsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000085 /* SnippetsSettingsView.swift */; };
+		AA00000000000000000086 /* SoundService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000086 /* SoundService.swift */; };
+		AA00000000000000000087 /* recording_start.wav in Resources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000087 /* recording_start.wav */; };
+		AA00000000000000000088 /* transcription_success.wav in Resources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000088 /* transcription_success.wav */; };
+		AA00000000000000000089 /* error.wav in Resources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000089 /* error.wav */; };
+		AA00000000000000000090 /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000090 /* HomeViewModel.swift */; };
+		AA00000000000000000091 /* HomeSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000091 /* HomeSettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -132,6 +138,12 @@
 		BB00000000000000000083 /* DictionarySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictionarySettingsView.swift; sourceTree = "<group>"; };
 		BB00000000000000000084 /* SnippetsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnippetsViewModel.swift; sourceTree = "<group>"; };
 		BB00000000000000000085 /* SnippetsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnippetsSettingsView.swift; sourceTree = "<group>"; };
+		BB00000000000000000086 /* SoundService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundService.swift; sourceTree = "<group>"; };
+		BB00000000000000000087 /* recording_start.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = recording_start.wav; sourceTree = "<group>"; };
+		BB00000000000000000088 /* transcription_success.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = transcription_success.wav; sourceTree = "<group>"; };
+		BB00000000000000000089 /* error.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = error.wav; sourceTree = "<group>"; };
+		BB00000000000000000090 /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
+		BB00000000000000000091 /* HomeSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeSettingsView.swift; sourceTree = "<group>"; };
 		DD00000000000000000099 /* TypeWhisper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TypeWhisper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -215,6 +227,7 @@
 				BB00000000000000000076 /* MediaPlaybackService.swift */,
 				BB00000000000000000079 /* DictionaryService.swift */,
 				BB00000000000000000081 /* SnippetService.swift */,
+				BB00000000000000000086 /* SoundService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -242,6 +255,7 @@
 				BB00000000000000000067 /* ProfilesViewModel.swift */,
 				BB00000000000000000082 /* DictionaryViewModel.swift */,
 				BB00000000000000000084 /* SnippetsViewModel.swift */,
+				BB00000000000000000090 /* HomeViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -262,6 +276,7 @@
 				BB00000000000000000075 /* TranslationHostWindow.swift */,
 				BB00000000000000000083 /* DictionarySettingsView.swift */,
 				BB00000000000000000085 /* SnippetsSettingsView.swift */,
+				BB00000000000000000091 /* HomeSettingsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -269,12 +284,23 @@
 		CC00000000000000000009 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				CC00000000000000000011 /* Sounds */,
 				BB00000000000000000018 /* Info.plist */,
 				BB00000000000000000019 /* TypeWhisper.entitlements */,
 				BB00000000000000000052 /* Localizable.xcstrings */,
 				BB00000000000000000072 /* Assets.xcassets */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		CC00000000000000000011 /* Sounds */ = {
+			isa = PBXGroup;
+			children = (
+				BB00000000000000000087 /* recording_start.wav */,
+				BB00000000000000000088 /* transcription_success.wav */,
+				BB00000000000000000089 /* error.wav */,
+			);
+			path = Sounds;
 			sourceTree = "<group>";
 		};
 		CC00000000000000000010 /* HTTPServer */ = {
@@ -370,6 +396,9 @@
 			files = (
 				AA00000000000000000052 /* Localizable.xcstrings in Resources */,
 				AA00000000000000000072 /* Assets.xcassets in Resources */,
+				AA00000000000000000087 /* recording_start.wav in Resources */,
+				AA00000000000000000088 /* transcription_success.wav in Resources */,
+				AA00000000000000000089 /* error.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -436,6 +465,9 @@
 				AA00000000000000000083 /* DictionarySettingsView.swift in Sources */,
 				AA00000000000000000084 /* SnippetsViewModel.swift in Sources */,
 				AA00000000000000000085 /* SnippetsSettingsView.swift in Sources */,
+				AA00000000000000000086 /* SoundService.swift in Sources */,
+				AA00000000000000000090 /* HomeViewModel.swift in Sources */,
+				AA00000000000000000091 /* HomeSettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

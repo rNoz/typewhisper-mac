@@ -29,6 +29,14 @@ struct GeneralSettingsView: View {
                     .foregroundStyle(.secondary)
             }
 
+            Section(String(localized: "Sound")) {
+                Toggle(String(localized: "Play sound feedback"), isOn: $dictation.soundFeedbackEnabled)
+
+                Text(String(localized: "Plays a sound when recording starts and when transcription completes."))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             Section(String(localized: "Audio Ducking")) {
                 Toggle(String(localized: "Reduce system volume during recording"), isOn: $dictation.audioDuckingEnabled)
 

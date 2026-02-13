@@ -13,9 +13,11 @@ struct TypeWhisperApp: App {
         }
         .menuBarExtraStyle(.menu)
 
-        Settings {
+        Window(String(localized: "Settings"), id: "settings") {
             SettingsView()
         }
+        .windowResizability(.contentMinSize)
+        .defaultSize(width: 750, height: 600)
     }
 
     init() {

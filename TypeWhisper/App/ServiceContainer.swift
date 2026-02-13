@@ -19,6 +19,7 @@ final class ServiceContainer: ObservableObject {
     let mediaPlaybackService: MediaPlaybackService
     let dictionaryService: DictionaryService
     let snippetService: SnippetService
+    let soundService: SoundService
 
     // HTTP API
     let httpServer: HTTPServer
@@ -33,6 +34,7 @@ final class ServiceContainer: ObservableObject {
     let profilesViewModel: ProfilesViewModel
     let dictionaryViewModel: DictionaryViewModel
     let snippetsViewModel: SnippetsViewModel
+    let homeViewModel: HomeViewModel
 
     private init() {
         // Services
@@ -49,6 +51,7 @@ final class ServiceContainer: ObservableObject {
         mediaPlaybackService = MediaPlaybackService()
         dictionaryService = DictionaryService()
         snippetService = SnippetService()
+        soundService = SoundService()
 
         // HTTP API
         let router = APIRouter()
@@ -76,7 +79,8 @@ final class ServiceContainer: ObservableObject {
             audioDuckingService: audioDuckingService,
             mediaPlaybackService: mediaPlaybackService,
             dictionaryService: dictionaryService,
-            snippetService: snippetService
+            snippetService: snippetService,
+            soundService: soundService
         )
         historyViewModel = HistoryViewModel(
             historyService: historyService,
@@ -88,6 +92,11 @@ final class ServiceContainer: ObservableObject {
         )
         dictionaryViewModel = DictionaryViewModel(dictionaryService: dictionaryService)
         snippetsViewModel = SnippetsViewModel(snippetService: snippetService)
+        homeViewModel = HomeViewModel(
+            historyService: historyService,
+            dictionaryService: dictionaryService,
+            profileService: profileService
+        )
 
         // Set shared references
         ModelManagerViewModel._shared = modelManagerViewModel
@@ -99,6 +108,7 @@ final class ServiceContainer: ObservableObject {
         ProfilesViewModel._shared = profilesViewModel
         DictionaryViewModel._shared = dictionaryViewModel
         SnippetsViewModel._shared = snippetsViewModel
+        HomeViewModel._shared = homeViewModel
     }
 
     func initialize() async {

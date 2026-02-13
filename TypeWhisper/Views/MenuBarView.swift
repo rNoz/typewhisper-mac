@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct MenuBarView: View {
+    @Environment(\.openWindow) private var openWindow
     @ObservedObject private var modelManager = ModelManagerViewModel.shared
     @ObservedObject private var dictation = DictationViewModel.shared
     @ObservedObject private var apiServer = APIServerViewModel.shared
@@ -53,7 +54,9 @@ struct MenuBarView: View {
 
         Divider()
 
-        SettingsLink {
+        Button {
+            openWindow(id: "settings")
+        } label: {
             Label(String(localized: "Settings..."), systemImage: "gear")
         }
         .keyboardShortcut(",")
