@@ -290,6 +290,7 @@ final class DictationViewModel: ObservableObject {
                     finalText: text,
                     appName: activeApp.name,
                     appBundleIdentifier: activeApp.bundleId,
+                    appURL: activeApp.url,
                     durationSeconds: audioDuration,
                     language: language,
                     engineUsed: result.engineUsed.rawValue

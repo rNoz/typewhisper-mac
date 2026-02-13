@@ -24,13 +24,24 @@ final class TranslationHostWindow: NSWindow {
         collectionBehavior = [.canJoinAllSpaces, .stationary]
 
         contentView = NSHostingView(
-            rootView: Color.clear
-                .frame(width: 1, height: 1)
-                .translationTask(translationService.configuration) { session in
-                    await translationService.handleSession(session)
-                }
+            rootView: TranslationHostView(translationService: translationService)
         )
 
         orderFrontRegardless()
+    }
+}
+
+/// Minimal SwiftUI view that observes TranslationService and hosts `.translationTask`.
+/// Using `@ObservedObject` ensures the view re-renders when `configuration` changes,
+/// which is required for `.translationTask` to fire.
+private struct TranslationHostView: View {
+    @ObservedObject var translationService: TranslationService
+
+    var body: some View {
+        Color.clear
+            .frame(width: 1, height: 1)
+            .translationTask(translationService.configuration) { session in
+                await translationService.handleSession(session)
+            }
     }
 }

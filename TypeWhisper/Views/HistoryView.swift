@@ -116,6 +116,12 @@ private struct RecordRow: View {
                         .foregroundStyle(.secondary)
                 }
 
+                if let domain = record.appDomain {
+                    Text("(\(domain))")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                }
+
                 Spacer()
 
                 Text(formatDuration(record.durationSeconds))
@@ -189,6 +195,9 @@ private struct RecordDetailView: View {
                     Label(record.engineUsed, systemImage: "cpu")
                     if let appName = record.appName {
                         Label(appName, systemImage: "app")
+                    }
+                    if let domain = record.appDomain {
+                        Label(domain, systemImage: "globe.desk")
                     }
                 }
                 .font(.caption)

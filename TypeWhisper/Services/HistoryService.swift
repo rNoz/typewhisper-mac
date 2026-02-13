@@ -47,6 +47,7 @@ final class HistoryService: ObservableObject {
         finalText: String,
         appName: String?,
         appBundleIdentifier: String?,
+        appURL: String? = nil,
         durationSeconds: Double,
         language: String?,
         engineUsed: String
@@ -56,6 +57,7 @@ final class HistoryService: ObservableObject {
             finalText: finalText,
             appName: appName,
             appBundleIdentifier: appBundleIdentifier,
+            appURL: appURL,
             durationSeconds: durationSeconds,
             language: language,
             engineUsed: engineUsed
