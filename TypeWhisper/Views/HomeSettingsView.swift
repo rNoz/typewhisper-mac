@@ -49,6 +49,26 @@ struct HomeSettingsView: View {
                     .foregroundStyle(.secondary)
                     .font(.caption)
                 }
+
+                #if DEBUG
+                HStack(spacing: 8) {
+                    Spacer()
+                    Button("Seed Demo Data") {
+                        let historyService = ServiceContainer.shared.historyService
+                        historyService.seedDemoData()
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.orange)
+                    .font(.caption)
+                    Button("Clear All Data") {
+                        let historyService = ServiceContainer.shared.historyService
+                        historyService.clearAll()
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.red)
+                    .font(.caption)
+                }
+                #endif
             }
             .padding()
         }

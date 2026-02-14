@@ -6,6 +6,10 @@
 
 Local speech-to-text for macOS. Transcribe audio using on-device AI models — no cloud, no API keys, no subscriptions. Your voice data never leaves your Mac.
 
+<p align="center">
+  <video src=".github/demo.mp4" autoplay loop muted playsinline width="700"></video>
+</p>
+
 ## Screenshots
 
 <p align="center">
