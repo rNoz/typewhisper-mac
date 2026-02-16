@@ -309,7 +309,10 @@ final class DictationViewModel: ObservableObject {
                 text = dictionaryService.applyCorrections(to: text)
 
                 partialText = ""
-                let insertionResult = try await textInsertionService.insertText(text)
+                let insertionResult = try await textInsertionService.insertText(
+                    text,
+                    forcePaste: matchedProfile?.alwaysPaste == true
+                )
 
                 historyService.addRecord(
                     rawText: result.text,

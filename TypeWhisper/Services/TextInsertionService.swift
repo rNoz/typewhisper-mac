@@ -9,7 +9,7 @@ private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "TypeWhis
 @MainActor
 final class TextInsertionService {
 
-    enum InsertionResult {
+enum InsertionResult {
         case pasted
         case copiedToClipboard
     }
@@ -164,13 +164,13 @@ final class TextInsertionService {
         return trimmed.hasPrefix("http://") || trimmed.hasPrefix("https://") || trimmed.hasPrefix("file://")
     }
 
-    func insertText(_ text: String) async throws -> InsertionResult {
+    func insertText(_ text: String, forcePaste: Bool = false) async throws -> InsertionResult {
         guard isAccessibilityGranted else {
             throw TextInsertionError.accessibilityNotGranted
         }
 
         let pasteboard = NSPasteboard.general
-        let isTextInput = isFocusedElementTextInput()
+        let shouldPaste = isFocusedElementTextInput() || forcePaste
 
         // Save current clipboard contents
         let savedItems = pasteboard.pasteboardItems?.compactMap { item -> (String, Data)? in
@@ -183,7 +183,7 @@ final class TextInsertionService {
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
 
-        if isTextInput {
+        if shouldPaste {
             // Simulate Cmd+V
             simulatePaste()
 
@@ -226,6 +226,19 @@ final class TextInsertionService {
             // but is not an editable text input. Contenteditable fields typically
             // appear as AXTextArea in modern browsers.
             if role == "AXWebArea" {
+                return false
+            }
+
+            // Known non-text roles: reject before fallback heuristic to avoid
+            // false positives in IDEs (e.g. file explorer, settings panels)
+            let nonTextRoles: Set<String> = [
+                "AXOutline", "AXList", "AXTable", "AXToolbar",
+                "AXButton", "AXGroup", "AXSplitGroup", "AXTabGroup",
+                "AXMenu", "AXMenuItem", "AXMenuBar", "AXStaticText",
+                "AXImage", "AXScrollBar", "AXSlider", "AXRow",
+                "AXProgressIndicator",
+            ]
+            if nonTextRoles.contains(role) {
                 return false
             }
         }

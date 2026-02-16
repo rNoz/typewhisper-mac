@@ -47,6 +47,7 @@ final class ProfileService: ObservableObject {
         selectedTask: String? = nil,
         whisperModeOverride: Bool? = nil,
         engineOverride: String? = nil,
+        alwaysPaste: Bool? = nil,
         priority: Int = 0
     ) {
         let profile = Profile(
@@ -58,7 +59,8 @@ final class ProfileService: ObservableObject {
             translationTargetLanguage: translationTargetLanguage,
             selectedTask: selectedTask,
             whisperModeOverride: whisperModeOverride,
-            engineOverride: engineOverride
+            engineOverride: engineOverride,
+            alwaysPaste: alwaysPaste
         )
         modelContext.insert(profile)
         save()

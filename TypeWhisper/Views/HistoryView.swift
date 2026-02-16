@@ -106,7 +106,7 @@ private struct RecordRow: View {
                 .font(.body)
 
             HStack {
-                Text(record.timestamp, style: .relative)
+                Text(relativeTime(record.timestamp))
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
@@ -130,6 +130,27 @@ private struct RecordRow: View {
             }
         }
         .padding(.vertical, 2)
+    }
+
+    private func relativeTime(_ date: Date) -> String {
+        let seconds = Date().timeIntervalSince(date)
+        let minutes = Int(seconds / 60)
+        let hours = Int(seconds / 3600)
+        let days = Int(seconds / 86400)
+
+        if minutes < 1 {
+            return String(localized: "just_now")
+        } else if minutes < 60 {
+            return String(localized: "\(minutes) min ago")
+        } else if hours < 24 {
+            return String(localized: "\(hours) hr ago")
+        } else if Calendar.current.isDateInYesterday(date) {
+            return String(localized: "yesterday")
+        } else if days < 7 {
+            return String(localized: "\(days) days ago")
+        } else {
+            return date.formatted(.dateTime.day().month(.abbreviated))
+        }
     }
 
     private func formatDuration(_ seconds: Double) -> String {

@@ -14,6 +14,7 @@ final class Profile {
     var selectedTask: String?
     var whisperModeOverride: Bool?
     var engineOverride: String?
+    var alwaysPaste: Bool?
     var createdAt: Date
     var updatedAt: Date
 
@@ -29,6 +30,7 @@ final class Profile {
         selectedTask: String? = nil,
         whisperModeOverride: Bool? = nil,
         engineOverride: String? = nil,
+        alwaysPaste: Bool? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date()
     ) {
@@ -43,6 +45,7 @@ final class Profile {
         self.selectedTask = selectedTask
         self.whisperModeOverride = whisperModeOverride
         self.engineOverride = engineOverride
+        self.alwaysPaste = alwaysPaste
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }

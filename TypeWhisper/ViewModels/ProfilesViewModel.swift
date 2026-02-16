@@ -39,6 +39,7 @@ final class ProfilesViewModel: ObservableObject {
     @Published var editorSelectedTask: String?
     @Published var editorWhisperModeOverride: Bool?
     @Published var editorEngineOverride: String?
+    @Published var editorAlwaysPaste: Bool?
     @Published var editorPriority: Int = 0
 
     // App picker
@@ -85,6 +86,7 @@ final class ProfilesViewModel: ObservableObject {
             selectedTask: editorSelectedTask,
             whisperModeOverride: editorWhisperModeOverride,
             engineOverride: editorEngineOverride,
+            alwaysPaste: editorAlwaysPaste,
             priority: editorPriority
         )
     }
@@ -99,6 +101,7 @@ final class ProfilesViewModel: ObservableObject {
             profile.selectedTask = editorSelectedTask
             profile.whisperModeOverride = editorWhisperModeOverride
             profile.engineOverride = editorEngineOverride
+            profile.alwaysPaste = editorAlwaysPaste
             profile.priority = editorPriority
             profileService.updateProfile(profile)
         } else {
@@ -127,6 +130,7 @@ final class ProfilesViewModel: ObservableObject {
         editorSelectedTask = nil
         editorWhisperModeOverride = nil
         editorEngineOverride = nil
+        editorAlwaysPaste = nil
         editorPriority = 0
         urlPatternInput = ""
         domainSuggestions = []
@@ -144,6 +148,7 @@ final class ProfilesViewModel: ObservableObject {
         editorSelectedTask = profile.selectedTask
         editorWhisperModeOverride = profile.whisperModeOverride
         editorEngineOverride = profile.engineOverride
+        editorAlwaysPaste = profile.alwaysPaste
         editorPriority = profile.priority
         urlPatternInput = ""
         domainSuggestions = []
