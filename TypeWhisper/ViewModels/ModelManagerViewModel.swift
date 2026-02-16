@@ -21,13 +21,20 @@ final class ModelManagerViewModel: ObservableObject {
 
     init(modelManager: ModelManagerService) {
         self.modelManager = modelManager
-        self.selectedEngine = modelManager.selectedEngine
         self.selectedModelId = modelManager.selectedModelId
-        self.models = ModelInfo.models(for: modelManager.selectedEngine)
+        if modelManager.selectedEngine.isCloud {
+            let fallback = EngineType.availableCases.first ?? .whisper
+            self.selectedEngine = fallback
+            self.models = ModelInfo.models(for: fallback)
+        } else {
+            self.selectedEngine = modelManager.selectedEngine
+            self.models = ModelInfo.models(for: modelManager.selectedEngine)
+        }
 
         modelManager.$selectedEngine
             .dropFirst()
             .sink { [weak self] engine in
+                if engine.isCloud { return }
                 DispatchQueue.main.async {
                     self?.selectedEngine = engine
                     self?.models = ModelInfo.models(for: engine)
