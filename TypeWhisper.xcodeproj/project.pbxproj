@@ -39,7 +39,7 @@
 		AA00000000000000000043 /* HTTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000043 /* HTTPServer.swift */; };
 		AA00000000000000000044 /* APIHandlers.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000044 /* APIHandlers.swift */; };
 		AA00000000000000000045 /* APIServerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000045 /* APIServerViewModel.swift */; };
-		AA00000000000000000046 /* APISettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000046 /* APISettingsView.swift */; };
+		AA00000000000000000046 /* AdvancedSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000046 /* AdvancedSettingsView.swift */; };
 		AA00000000000000000050 /* SubtitleExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000050 /* SubtitleExporter.swift */; };
 		AA00000000000000000051 /* GeneralSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000051 /* GeneralSettingsView.swift */; };
 		AA00000000000000000052 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000052 /* Localizable.xcstrings */; };
@@ -86,6 +86,11 @@
 		AA00000000000000000100 /* CloudModelInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000100 /* CloudModelInfo.swift */; };
 		AA00000000000000000101 /* CloudProviderSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000101 /* CloudProviderSection.swift */; };
 		AA00000000000000000102 /* AudioDeviceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000102 /* AudioDeviceService.swift */; };
+		AA00000000000000000103 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000103 /* main.swift */; };
+		AA00000000000000000104 /* CLIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000104 /* CLIClient.swift */; };
+		AA00000000000000000105 /* PortDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000105 /* PortDiscovery.swift */; };
+		AA00000000000000000106 /* OutputFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000106 /* OutputFormatter.swift */; };
+		AA00000000000000000107 /* typewhisper-cli in CopyFiles */ = {isa = PBXBuildFile; fileRef = DD00000000000000000098 /* typewhisper-cli */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -120,7 +125,7 @@
 		BB00000000000000000043 /* HTTPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPServer.swift; sourceTree = "<group>"; };
 		BB00000000000000000044 /* APIHandlers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIHandlers.swift; sourceTree = "<group>"; };
 		BB00000000000000000045 /* APIServerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIServerViewModel.swift; sourceTree = "<group>"; };
-		BB00000000000000000046 /* APISettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APISettingsView.swift; sourceTree = "<group>"; };
+		BB00000000000000000046 /* AdvancedSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedSettingsView.swift; sourceTree = "<group>"; };
 		BB00000000000000000050 /* SubtitleExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitleExporter.swift; sourceTree = "<group>"; };
 		BB00000000000000000051 /* GeneralSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsView.swift; sourceTree = "<group>"; };
 		BB00000000000000000052 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
@@ -166,6 +171,11 @@
 		BB00000000000000000100 /* CloudModelInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudModelInfo.swift; sourceTree = "<group>"; };
 		BB00000000000000000101 /* CloudProviderSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudProviderSection.swift; sourceTree = "<group>"; };
 		BB00000000000000000102 /* AudioDeviceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDeviceService.swift; sourceTree = "<group>"; };
+		BB00000000000000000103 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		BB00000000000000000104 /* CLIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLIClient.swift; sourceTree = "<group>"; };
+		BB00000000000000000105 /* PortDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortDiscovery.swift; sourceTree = "<group>"; };
+		BB00000000000000000106 /* OutputFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputFormatter.swift; sourceTree = "<group>"; };
+		DD00000000000000000098 /* typewhisper-cli */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "typewhisper-cli"; sourceTree = BUILT_PRODUCTS_DIR; };
 		DD00000000000000000099 /* TypeWhisper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TypeWhisper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -181,13 +191,52 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FF00000000000000000006 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		FF00000000000000000004 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 6;
+			files = (
+				AA00000000000000000107 /* typewhisper-cli in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXContainerItemProxy section */
+		HH00000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EE00000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DD00000000000000000002;
+			remoteInfo = "typewhisper-cli";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXTargetDependency section */
+		GG00000000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DD00000000000000000002 /* typewhisper-cli */;
+			targetProxy = HH00000000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXGroup section */
 		CC00000000000000000001 = {
 			isa = PBXGroup;
 			children = (
 				CC00000000000000000002 /* TypeWhisper */,
+				CC00000000000000000013 /* typewhisper-cli */,
 				CC00000000000000000090 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -295,7 +344,7 @@
 				BB00000000000000000017 /* SettingsView.swift */,
 				BB00000000000000000034 /* DictationOverlayPanel.swift */,
 				BB00000000000000000035 /* DictationOverlayView.swift */,
-				BB00000000000000000046 /* APISettingsView.swift */,
+				BB00000000000000000046 /* AdvancedSettingsView.swift */,
 				BB00000000000000000051 /* GeneralSettingsView.swift */,
 				BB00000000000000000064 /* HistoryView.swift */,
 				BB00000000000000000068 /* ProfilesSettingsView.swift */,
@@ -356,9 +405,21 @@
 			path = Cloud;
 			sourceTree = "<group>";
 		};
+		CC00000000000000000013 /* typewhisper-cli */ = {
+			isa = PBXGroup;
+			children = (
+				BB00000000000000000103 /* main.swift */,
+				BB00000000000000000104 /* CLIClient.swift */,
+				BB00000000000000000105 /* PortDiscovery.swift */,
+				BB00000000000000000106 /* OutputFormatter.swift */,
+			);
+			path = "typewhisper-cli";
+			sourceTree = "<group>";
+		};
 		CC00000000000000000090 /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				DD00000000000000000098 /* typewhisper-cli */,
 				DD00000000000000000099 /* TypeWhisper.app */,
 			);
 			name = Products;
@@ -374,10 +435,12 @@
 				FF00000000000000000002 /* Sources */,
 				FF00000000000000000001 /* Frameworks */,
 				FF00000000000000000003 /* Resources */,
+				FF00000000000000000004 /* CopyFiles */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				GG00000000000000000001 /* PBXTargetDependency */,
 			);
 			name = TypeWhisper;
 			packageProductDependencies = (
@@ -390,6 +453,22 @@
 			productReference = DD00000000000000000099 /* TypeWhisper.app */;
 			productType = "com.apple.product-type.application";
 		};
+		DD00000000000000000002 /* typewhisper-cli */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FF00000000000000000031 /* Build configuration list for PBXNativeTarget "typewhisper-cli" */;
+			buildPhases = (
+				FF00000000000000000005 /* Sources */,
+				FF00000000000000000006 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "typewhisper-cli";
+			productName = typewhisper;
+			productReference = DD00000000000000000098 /* typewhisper-cli */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -401,6 +480,9 @@
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					DD00000000000000000001 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					DD00000000000000000002 = {
 						CreatedOnToolsVersion = 16.0;
 					};
 				};
@@ -426,6 +508,7 @@
 			projectRoot = "";
 			targets = (
 				DD00000000000000000001 /* TypeWhisper */,
+				DD00000000000000000002 /* typewhisper-cli */,
 			);
 		};
 /* End PBXProject section */
@@ -479,7 +562,7 @@
 				AA00000000000000000043 /* HTTPServer.swift in Sources */,
 				AA00000000000000000044 /* APIHandlers.swift in Sources */,
 				AA00000000000000000045 /* APIServerViewModel.swift in Sources */,
-				AA00000000000000000046 /* APISettingsView.swift in Sources */,
+				AA00000000000000000046 /* AdvancedSettingsView.swift in Sources */,
 				AA00000000000000000050 /* SubtitleExporter.swift in Sources */,
 				AA00000000000000000051 /* GeneralSettingsView.swift in Sources */,
 				AA00000000000000000060 /* TranscriptionRecord.swift in Sources */,
@@ -520,6 +603,17 @@
 				AA00000000000000000100 /* CloudModelInfo.swift in Sources */,
 				AA00000000000000000101 /* CloudProviderSection.swift in Sources */,
 				AA00000000000000000102 /* AudioDeviceService.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FF00000000000000000005 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA00000000000000000103 /* main.swift in Sources */,
+				AA00000000000000000104 /* CLIClient.swift in Sources */,
+				AA00000000000000000105 /* PortDiscovery.swift in Sources */,
+				AA00000000000000000106 /* OutputFormatter.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -710,6 +804,32 @@
 			};
 			name = Release;
 		};
+		XX00000000000000000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = 2D8ALY3LCL;
+				ENABLE_HARDENED_RUNTIME = YES;
+				MARKETING_VERSION = 0.6.1;
+				PRODUCT_NAME = "typewhisper-cli";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		XX00000000000000000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = 2D8ALY3LCL;
+				ENABLE_HARDENED_RUNTIME = YES;
+				MARKETING_VERSION = 0.6.1;
+				PRODUCT_NAME = "typewhisper-cli";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -727,6 +847,15 @@
 			buildConfigurations = (
 				XX00000000000000000003 /* Debug */,
 				XX00000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FF00000000000000000031 /* Build configuration list for PBXNativeTarget "typewhisper-cli" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				XX00000000000000000005 /* Debug */,
+				XX00000000000000000006 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -3,7 +3,7 @@ import KeyboardShortcuts
 
 enum SettingsTab: Hashable {
     case home, general, models, dictation
-    case fileTranscription, history, dictionary, snippets, profiles, apiServer
+    case fileTranscription, history, dictionary, snippets, profiles, advanced
 }
 
 struct SettingsView: View {
@@ -64,8 +64,8 @@ private struct SettingsExtraTabs: TabContent {
         Tab(String(localized: "Profiles"), systemImage: "person.crop.rectangle.stack", value: SettingsTab.profiles) {
             ProfilesSettingsView()
         }
-        Tab(String(localized: "API Server"), systemImage: "network", value: SettingsTab.apiServer) {
-            APISettingsView()
+        Tab(String(localized: "Advanced"), systemImage: "gearshape.2", value: SettingsTab.advanced) {
+            AdvancedSettingsView()
         }
     }
 }

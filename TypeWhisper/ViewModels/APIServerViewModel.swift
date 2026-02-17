@@ -33,6 +33,7 @@ final class APIServerViewModel: ObservableObject {
                 self?.isRunning = running
                 if !running {
                     self?.errorMessage = "Server stopped unexpectedly"
+                    self?.removePortFile()
                 }
             }
         }
@@ -42,6 +43,7 @@ final class APIServerViewModel: ObservableObject {
         errorMessage = nil
         do {
             try httpServer.start(port: port)
+            writePortFile()
         } catch {
             errorMessage = error.localizedDescription
             isRunning = false
@@ -52,6 +54,7 @@ final class APIServerViewModel: ObservableObject {
         httpServer.stop()
         isRunning = false
         errorMessage = nil
+        removePortFile()
     }
 
     func restartIfNeeded() {
@@ -59,5 +62,23 @@ final class APIServerViewModel: ObservableObject {
             stopServer()
             startServer()
         }
+    }
+
+    // MARK: - Port File
+
+    private static var portFileURL: URL {
+        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("TypeWhisper")
+            .appendingPathComponent("api-port")
+    }
+
+    private func writePortFile() {
+        let url = Self.portFileURL
+        try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try? String(port).write(to: url, atomically: true, encoding: .utf8)
+    }
+
+    private func removePortFile() {
+        try? FileManager.default.removeItem(at: Self.portFileURL)
     }
 }
