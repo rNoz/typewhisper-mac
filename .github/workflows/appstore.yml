@@ -11,6 +11,7 @@ on:
 env:
   SCHEME: "TypeWhisper AppStore"
   PROJECT: TypeWhisper.xcodeproj
+  PROFILE_NAME: "match AppStore com.typewhisper.typewhisper-mac macos"
 
 jobs:
   build:
@@ -51,25 +52,18 @@ jobs:
           echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> $GITHUB_ENV
           echo "KEYCHAIN_PASSWORD=$KEYCHAIN_PASSWORD" >> $GITHUB_ENV
 
-      - name: Setup App Store Connect API Key
+      - name: Install Provisioning Profile
         env:
-          APPLE_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          APPLE_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-          APPLE_API_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
+          APPSTORE_PROVISIONING_PROFILE: ${{ secrets.APPSTORE_PROVISIONING_PROFILE }}
         run: |
-          mkdir -p ~/private_keys
-          printf '%s' "$APPLE_API_KEY_P8" > ~/private_keys/AuthKey_${APPLE_API_KEY_ID}.p8
-          chmod 600 ~/private_keys/AuthKey_${APPLE_API_KEY_ID}.p8
-
-          echo "API_KEY_PATH=~/private_keys/AuthKey_${APPLE_API_KEY_ID}.p8" >> $GITHUB_ENV
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "$APPSTORE_PROVISIONING_PROFILE" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/appstore.provisionprofile
+          echo "Installed provisioning profile"
 
       - name: List signing identities
         run: security find-identity -v -p codesigning
 
       - name: Archive App
-        env:
-          APPLE_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          APPLE_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
         run: |
           VERSION="${{ inputs.version }}"
           echo "Building version: $VERSION"
@@ -80,32 +74,30 @@ jobs:
             -configuration AppStoreRelease \
             -archivePath build/TypeWhisper.xcarchive \
             -destination 'generic/platform=macOS' \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath ~/private_keys/AuthKey_${APPLE_API_KEY_ID}.p8 \
-            -authenticationKeyID "$APPLE_API_KEY_ID" \
-            -authenticationKeyIssuerID "$APPLE_API_ISSUER_ID" \
             MARKETING_VERSION="$VERSION" \
-            CURRENT_PROJECT_VERSION="$VERSION"
+            CURRENT_PROJECT_VERSION="$VERSION" \
+            CODE_SIGN_STYLE=Manual \
+            "CODE_SIGN_IDENTITY=Apple Distribution" \
+            DEVELOPMENT_TEAM=2D8ALY3LCL \
+            "PROVISIONING_PROFILE_SPECIFIER=$PROFILE_NAME"
 
       - name: Export for App Store
-        env:
-          APPLE_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          APPLE_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
         run: |
           xcodebuild -exportArchive \
             -archivePath build/TypeWhisper.xcarchive \
             -exportPath build/export \
-            -exportOptionsPlist ExportOptions.plist \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath ~/private_keys/AuthKey_${APPLE_API_KEY_ID}.p8 \
-            -authenticationKeyID "$APPLE_API_KEY_ID" \
-            -authenticationKeyIssuerID "$APPLE_API_ISSUER_ID"
+            -exportOptionsPlist ExportOptions.plist
 
       - name: Upload to App Store Connect
         env:
           APPLE_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           APPLE_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APPLE_API_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
         run: |
+          mkdir -p ~/private_keys
+          printf '%s' "$APPLE_API_KEY_P8" > ~/private_keys/AuthKey_${APPLE_API_KEY_ID}.p8
+          chmod 600 ~/private_keys/AuthKey_${APPLE_API_KEY_ID}.p8
+
           xcrun altool --upload-app \
             -f build/export/TypeWhisper.pkg \
             --type macos \
@@ -120,3 +112,4 @@ jobs:
             security delete-keychain "$KEYCHAIN_PATH" || true
           fi
           rm -rf ~/private_keys /tmp/cert.p12
+          rm -f ~/Library/MobileDevice/Provisioning\ Profiles/appstore.provisionprofile
