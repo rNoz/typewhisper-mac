@@ -51,6 +51,9 @@ jobs:
           echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> $GITHUB_ENV
           echo "KEYCHAIN_PASSWORD=$KEYCHAIN_PASSWORD" >> $GITHUB_ENV
 
+      - name: List signing identities
+        run: security find-identity -v -p codesigning
+
       - name: Archive App
         run: |
           VERSION="${{ inputs.version }}"
@@ -62,8 +65,12 @@ jobs:
             -configuration AppStoreRelease \
             -archivePath build/TypeWhisper.xcarchive \
             -destination 'generic/platform=macOS' \
+            -allowProvisioningUpdates \
             MARKETING_VERSION="$VERSION" \
-            CURRENT_PROJECT_VERSION="$VERSION"
+            CURRENT_PROJECT_VERSION="$VERSION" \
+            CODE_SIGN_STYLE=Manual \
+            "CODE_SIGN_IDENTITY=3rd Party Mac Developer Application" \
+            DEVELOPMENT_TEAM=2D8ALY3LCL
 
       - name: Export for App Store
         run: |
