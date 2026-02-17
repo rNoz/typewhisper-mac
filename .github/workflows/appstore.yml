@@ -60,9 +60,13 @@ jobs:
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           echo "$APPSTORE_PROVISIONING_PROFILE" | base64 --decode > /tmp/appstore.provisionprofile
           PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print :UUID" /dev/stdin <<< "$(security cms -D -i /tmp/appstore.provisionprofile)")
+          PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print :Name" /dev/stdin <<< "$(security cms -D -i /tmp/appstore.provisionprofile)")
           cp /tmp/appstore.provisionprofile ~/Library/MobileDevice/Provisioning\ Profiles/${PROFILE_UUID}.provisionprofile
-          echo "PROFILE_UUID=$PROFILE_UUID" >> $GITHUB_ENV
-          echo "Installed provisioning profile with UUID: $PROFILE_UUID"
+          echo "Installed profile '$PROFILE_NAME' (UUID: $PROFILE_UUID)"
+
+          # Patch pbxproj to match the actual profile name from the secret
+          sed -i '' "s|match AppStore com.typewhisper.typewhisper-mac macos|${PROFILE_NAME}|g" $PROJECT/project.pbxproj
+          echo "Patched pbxproj with profile name: $PROFILE_NAME"
 
       - name: Archive App
         run: |
@@ -76,11 +80,7 @@ jobs:
             -archivePath build/TypeWhisper.xcarchive \
             -destination 'generic/platform=macOS' \
             MARKETING_VERSION="$VERSION" \
-            CURRENT_PROJECT_VERSION="$VERSION" \
-            CODE_SIGN_STYLE=Manual \
-            "CODE_SIGN_IDENTITY=Apple Distribution" \
-            DEVELOPMENT_TEAM=2D8ALY3LCL \
-            "PROVISIONING_PROFILE=$PROFILE_UUID"
+            CURRENT_PROJECT_VERSION="$VERSION"
 
       - name: Build Package
         run: |
