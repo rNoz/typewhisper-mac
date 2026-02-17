@@ -189,6 +189,7 @@ struct GeneralSettingsView: View {
                 }
             }
 
+            #if !APPSTORE
             Section(String(localized: "Media Playback")) {
                 Toggle(String(localized: "Pause media playback during recording"), isOn: $dictation.mediaPauseEnabled)
 
@@ -212,6 +213,7 @@ struct GeneralSettingsView: View {
                     .disabled(UpdateChecker.shared?.canCheckForUpdates() != true)
                 }
             }
+            #endif
         }
         .formStyle(.grouped)
         .padding()
@@ -227,13 +229,13 @@ struct GeneralSettingsView: View {
     }
 
     private func restartApp() {
-        let bundlePath = Bundle.main.bundlePath
-        let task = Process()
-        task.launchPath = "/usr/bin/open"
-        task.arguments = ["-n", bundlePath]
-        task.launch()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            NSApplication.shared.terminate(nil)
+        let bundleURL = Bundle.main.bundleURL
+        let config = NSWorkspace.OpenConfiguration()
+        config.createsNewApplicationInstance = true
+        NSWorkspace.shared.openApplication(at: bundleURL, configuration: config) { _, _ in
+            DispatchQueue.main.async {
+                NSApplication.shared.terminate(nil)
+            }
         }
     }
 

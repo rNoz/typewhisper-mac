@@ -75,10 +75,12 @@ struct MenuBarView: View {
         }
         .disabled(!modelManager.isModelReady)
 
+        #if !APPSTORE
         Button(String(localized: "Check for Updates...")) {
             UpdateChecker.shared?.checkForUpdates()
         }
         .disabled(UpdateChecker.shared?.canCheckForUpdates() != true)
+        #endif
 
         Divider()
 

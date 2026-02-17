@@ -7,6 +7,7 @@ private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "TypeWhis
 class MediaPlaybackService {
     private var didPause = false
 
+    #if !APPSTORE
     // Dynamically loaded function from private MediaRemote framework
     private let sendCommand: (@convention(c) (Int, CFDictionary?) -> Bool)?
 
@@ -16,7 +17,7 @@ class MediaPlaybackService {
             sendCommand = unsafeBitCast(sym, to: (@convention(c) (Int, CFDictionary?) -> Bool).self)
         } else {
             sendCommand = nil
-            logger.info("MediaRemote framework not available — media pause feature disabled")
+            logger.info("MediaRemote framework not available - media pause feature disabled")
         }
     }
 
@@ -35,4 +36,8 @@ class MediaPlaybackService {
         didPause = false
         logger.info("Media playback resumed")
     }
+    #else
+    func pausePlayback() {}
+    func resumePlayback() {}
+    #endif
 }

@@ -50,9 +50,14 @@ enum InsertionResult {
     }
 
     func resolveBrowserURL(bundleId: String) async -> String? {
+        #if APPSTORE
+        // Apple Events to other apps are blocked in the App Sandbox
+        return nil
+        #else
         await Task.detached(priority: .utility) {
             Self.getBrowserURL(bundleId: bundleId)
         }.value
+        #endif
     }
 
     // MARK: - Browser URL Detection
@@ -89,29 +94,26 @@ enum InsertionResult {
         // Firefox doesn't support AppleScript for URL access
         guard browserType != .firefox else { return nil }
 
+        // Resolve app name for AppleScript (required in sandbox - "tell application id" doesn't work)
+        let appName = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleId)
+            .flatMap { Bundle(url: $0)?.infoDictionary?["CFBundleName"] as? String }
+            ?? bundleId
+
+
         let script: String
         switch browserType {
         case .safari:
             script = """
-            tell application id "\(bundleId)"
+            tell application "\(appName)"
                 if (count of windows) > 0 then
                     return URL of current tab of front window
                 end if
             end tell
             return ""
             """
-        case .arc:
+        case .arc, .chromiumBased:
             script = """
-            tell application id "\(bundleId)"
-                if (count of windows) > 0 then
-                    return URL of active tab of front window
-                end if
-            end tell
-            return ""
-            """
-        case .chromiumBased:
-            script = """
-            tell application id "\(bundleId)"
+            tell application "\(appName)"
                 if (count of windows) > 0 then
                     return URL of active tab of front window
                 end if
@@ -126,38 +128,27 @@ enum InsertionResult {
     }
 
     nonisolated private static func executeAppleScript(_ source: String, timeout: TimeInterval) -> String? {
-        let process = Process()
-        let outputPipe = Pipe()
-        let errorPipe = Pipe()
+        var result: String?
+        let semaphore = DispatchSemaphore(value: 0)
 
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
-        process.arguments = ["-e", source]
-        process.standardOutput = outputPipe
-        process.standardError = errorPipe
+        DispatchQueue.global(qos: .userInitiated).async {
+            var error: NSDictionary?
+            let script = NSAppleScript(source: source)
+            let descriptor = script?.executeAndReturnError(&error)
+            if let errorDict = error {
+                logger.warning("NSAppleScript error: \(errorDict)")
+            }
+            if let stringValue = descriptor?.stringValue {
+                result = stringValue
+            }
+            semaphore.signal()
+        }
 
-        do {
-            try process.run()
-        } catch {
-            logger.warning("osascript process start failed: \(error.localizedDescription, privacy: .public)")
+        let waitResult = semaphore.wait(timeout: .now() + timeout)
+        if waitResult == .timedOut {
+            logger.warning("NSAppleScript timed out after \(timeout)s")
             return nil
         }
-
-        let deadline = Date().addingTimeInterval(timeout)
-        while process.isRunning && Date() < deadline {
-            Thread.sleep(forTimeInterval: 0.01)
-        }
-
-        if process.isRunning {
-            process.terminate()
-            logger.warning("osascript timed out after \(timeout, privacy: .public)s")
-            return nil
-        }
-
-        guard process.terminationStatus == 0 else { return nil }
-
-        let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
-        let result = String(data: outputData, encoding: .utf8)?
-            .trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard let result, !result.isEmpty, isValidURL(result) else { return nil }
         return result
@@ -175,36 +166,12 @@ enum InsertionResult {
         }
 
         let pasteboard = NSPasteboard.general
-        let shouldPaste = isFocusedElementTextInput() || forcePaste
-
-        // Save current clipboard contents
-        let savedItems = pasteboard.pasteboardItems?.compactMap { item -> (String, Data)? in
-            guard let type = item.types.first,
-                  let data = item.data(forType: type) else { return nil }
-            return (type.rawValue, data)
-        } ?? []
-
-        // Set transcribed text
+        // Set transcribed text on clipboard and simulate Cmd+V.
+        // Text stays on clipboard as fallback if no text field is focused.
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
-
-        if shouldPaste {
-            // Simulate Cmd+V
-            simulatePaste()
-
-            // Wait for paste to complete, then restore clipboard
-            try await Task.sleep(for: .milliseconds(200))
-
-            pasteboard.clearContents()
-            for (typeRaw, data) in savedItems {
-                let type = NSPasteboard.PasteboardType(typeRaw)
-                pasteboard.setData(data, forType: type)
-            }
-            return .pasted
-        } else {
-            // No text field focused — leave text in clipboard for manual paste
-            return .copiedToClipboard
-        }
+        simulatePaste()
+        return .pasted
     }
 
     private func isFocusedElementTextInput() -> Bool {
@@ -305,15 +272,14 @@ enum InsertionResult {
     }
 
     private func simulatePaste() {
-        let source = CGEventSource(stateID: .hidSystemState)
-
         // Key code 0x09 = V
-        let keyDown = CGEvent(keyboardEventSource: source, virtualKey: 0x09, keyDown: true)
+        // Use nil source + .cgSessionEventTap for App Sandbox compatibility
+        let keyDown = CGEvent(keyboardEventSource: nil, virtualKey: 0x09, keyDown: true)
         keyDown?.flags = .maskCommand
-        keyDown?.post(tap: .cghidEventTap)
+        keyDown?.post(tap: .cgSessionEventTap)
 
-        let keyUp = CGEvent(keyboardEventSource: source, virtualKey: 0x09, keyDown: false)
+        let keyUp = CGEvent(keyboardEventSource: nil, virtualKey: 0x09, keyDown: false)
         keyUp?.flags = .maskCommand
-        keyUp?.post(tap: .cghidEventTap)
+        keyUp?.post(tap: .cgSessionEventTap)
     }
 }
