@@ -552,8 +552,14 @@ final class DictationViewModel: ObservableObject {
             }
             return
         }
+
+        // Ensure text is always in clipboard (getSelectedText restores old clipboard)
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
+
         availablePromptActions = actions
-        selectedPromptIndex = 0
+        selectedPromptIndex = 0  // 0 = "Copy to Clipboard", 1+ = prompt actions
         state = .promptSelection(text)
 
         promptDismissTask?.cancel()
@@ -591,11 +597,16 @@ final class DictationViewModel: ObservableObject {
                 pasteboard.setString(result, forType: .string)
 
                 soundService.play(.transcriptionSuccess, enabled: soundFeedbackEnabled)
-                state = .inserting
 
-                try? await Task.sleep(for: .seconds(2))
-                guard !Task.isCancelled else { return }
-                resetDictationState()
+                // Stay in promptProcessing to show result text in the Notch.
+                // Auto-dismiss after 8 seconds or manual dismiss via Esc.
+                promptDismissTask = Task {
+                    try? await Task.sleep(for: .seconds(8))
+                    guard !Task.isCancelled else { return }
+                    if case .promptProcessing = state {
+                        resetDictationState()
+                    }
+                }
             } catch {
                 guard !Task.isCancelled else { return }
                 soundService.play(.error, enabled: soundFeedbackEnabled)
@@ -604,22 +615,41 @@ final class DictationViewModel: ObservableObject {
         }
     }
 
+    /// Total options: 1 (clipboard) + prompt actions count
+    private var totalPromptOptions: Int {
+        1 + availablePromptActions.count
+    }
+
     func selectPromptByIndex(_ index: Int) {
-        guard index >= 0, index < availablePromptActions.count else { return }
-        selectPromptAction(availablePromptActions[index])
+        guard index >= 0, index < totalPromptOptions else { return }
+        selectedPromptIndex = index
+        confirmPromptSelection()
     }
 
     func movePromptSelection(by offset: Int) {
-        guard !availablePromptActions.isEmpty else { return }
-        selectedPromptIndex = max(0, min(availablePromptActions.count - 1, selectedPromptIndex + offset))
+        guard totalPromptOptions > 0 else { return }
+        selectedPromptIndex = max(0, min(totalPromptOptions - 1, selectedPromptIndex + offset))
     }
 
     func confirmPromptSelection() {
-        guard selectedPromptIndex >= 0, selectedPromptIndex < availablePromptActions.count else { return }
-        selectPromptAction(availablePromptActions[selectedPromptIndex])
+        if selectedPromptIndex == 0 {
+            // "Copy to Clipboard" - text is already there, just dismiss
+            soundService.play(.transcriptionSuccess, enabled: soundFeedbackEnabled)
+            state = .inserting
+            Task {
+                try? await Task.sleep(for: .seconds(1.5))
+                guard !Task.isCancelled else { return }
+                resetDictationState()
+            }
+        } else {
+            let actionIndex = selectedPromptIndex - 1
+            guard actionIndex >= 0, actionIndex < availablePromptActions.count else { return }
+            selectPromptAction(availablePromptActions[actionIndex])
+        }
     }
 
     func dismissPromptSelection() {
+        // Works for both promptSelection and promptProcessing (result display)
         resetDictationState()
     }
 

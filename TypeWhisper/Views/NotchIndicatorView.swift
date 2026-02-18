@@ -301,10 +301,13 @@ struct NotchIndicatorView: View {
                 .fill(.white.opacity(0.08))
                 .frame(height: 1)
 
-            // Prompt action list
+            // Action list: clipboard option + prompt actions
             VStack(spacing: 2) {
+                // "Copy to Clipboard" as first option (index 0)
+                clipboardRow
+
                 ForEach(Array(viewModel.availablePromptActions.enumerated()), id: \.element.id) { index, action in
-                    promptActionRow(action: action, index: index)
+                    promptActionRow(action: action, index: index + 1) // offset by 1
                 }
             }
             .padding(.vertical, 8)
@@ -323,6 +326,42 @@ struct NotchIndicatorView: View {
     }
 
     @ViewBuilder
+    private var clipboardRow: some View {
+        let isSelected = viewModel.selectedPromptIndex == 0
+
+        HStack(spacing: 10) {
+            Image(systemName: "doc.on.clipboard")
+                .font(.system(size: 13))
+                .frame(width: 18)
+
+            Text(String(localized: "Copy to Clipboard"))
+                .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
+
+            Spacer()
+
+            Text("1")
+                .font(.system(size: 11, weight: .medium).monospacedDigit())
+                .foregroundStyle(.white.opacity(0.25))
+        }
+        .foregroundStyle(.white.opacity(isSelected ? 1.0 : 0.65))
+        .padding(.horizontal, 24)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(isSelected ? Color.white.opacity(0.1) : Color.clear)
+                .padding(.horizontal, 8)
+        )
+        .contentShape(Rectangle())
+        .onHover { hovering in
+            if hovering { viewModel.selectedPromptIndex = 0 }
+        }
+        .onTapGesture {
+            viewModel.selectedPromptIndex = 0
+            viewModel.confirmPromptSelection()
+        }
+    }
+
+    @ViewBuilder
     private func promptActionRow(action: PromptAction, index: Int) -> some View {
         let isSelected = index == viewModel.selectedPromptIndex
 
@@ -336,8 +375,8 @@ struct NotchIndicatorView: View {
 
             Spacer()
 
-            if index < 9 {
-                Text("\(index + 1)")
+            if index < 9 {  // index already includes clipboard offset
+                Text("\(index + 1)")  // clipboard=1, first action=2, etc.
                     .font(.system(size: 11, weight: .medium).monospacedDigit())
                     .foregroundStyle(.white.opacity(0.25))
             }
@@ -365,18 +404,49 @@ struct NotchIndicatorView: View {
 
     @ViewBuilder
     private func promptProcessingView(promptName: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 6) {
-                ProgressView()
-                    .controlSize(.mini)
-                    .tint(.white)
-                Text(promptName + "...")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.7))
+        VStack(alignment: .leading, spacing: 0) {
+            if viewModel.promptResultText.isEmpty {
+                // Processing spinner
+                HStack(spacing: 6) {
+                    ProgressView()
+                        .controlSize(.mini)
+                        .tint(.white)
+                    Text(promptName + "...")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.7))
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 16)
+                .padding(.bottom, 16)
+            } else {
+                // Result display
+                HStack(spacing: 6) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                        .font(.system(size: 11))
+                    Text(promptName)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.5))
+                    Spacer()
+                    Text("esc")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.25))
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 14)
+
+                ScrollView(.vertical, showsIndicators: true) {
+                    Text(viewModel.promptResultText)
+                        .font(.system(size: 12))
+                        .foregroundStyle(.white.opacity(0.85))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 24)
+                        .padding(.top, 8)
+                        .padding(.bottom, 16)
+                        .textSelection(.enabled)
+                }
+                .frame(maxHeight: 200)
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 12)
-            .padding(.bottom, 12)
         }
     }
 

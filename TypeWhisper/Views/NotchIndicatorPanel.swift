@@ -88,11 +88,15 @@ class NotchIndicatorPanel: NSPanel {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] state in
                 guard let self else { return }
-                if case .promptSelection = state {
+                switch state {
+                case .promptSelection:
                     self.ignoresMouseEvents = false
                     self.orderFrontRegardless()
                     self.installKeyMonitor()
-                } else {
+                case .promptProcessing:
+                    self.ignoresMouseEvents = false
+                    self.installKeyMonitor()
+                default:
                     self.ignoresMouseEvents = true
                     self.removeKeyMonitor()
                 }
@@ -134,11 +138,17 @@ class NotchIndicatorPanel: NSPanel {
 
     private func handlePromptKey(_ event: NSEvent) {
         let vm = DictationViewModel.shared
+
+        // Esc dismisses both promptSelection and promptProcessing (result view)
+        if event.keyCode == 53 {
+            vm.dismissPromptSelection()
+            return
+        }
+
+        // Other keys only work during selection
         guard case .promptSelection = vm.state else { return }
 
         switch event.keyCode {
-        case 53: // Escape
-            vm.dismissPromptSelection()
         case 36: // Enter/Return
             vm.confirmPromptSelection()
         case 126: // Arrow Up
