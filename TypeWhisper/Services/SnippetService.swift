@@ -6,7 +6,7 @@ import os.log
 private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "TypeWhisper", category: "SnippetService")
 
 @MainActor
-class SnippetService: ObservableObject {
+final class SnippetService: ObservableObject {
     private var modelContainer: ModelContainer?
     private var modelContext: ModelContext?
 

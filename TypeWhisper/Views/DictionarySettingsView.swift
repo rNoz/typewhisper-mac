@@ -44,9 +44,9 @@ struct DictionarySettingsView: View {
                     VStack(spacing: 8) {
                         Image(systemName: "line.3.horizontal.decrease.circle")
                             .font(.system(size: 32))
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                         Text(String(localized: "No entries for this filter"))
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     }
                     Spacer()
                 } else {
@@ -83,13 +83,13 @@ struct DictionarySettingsView: View {
             VStack(spacing: 12) {
                 Image(systemName: "character.book.closed")
                     .font(.system(size: 40))
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                 Text(String(localized: "No dictionary entries"))
                     .font(.headline)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                 Text(String(localized: "Terms help speech recognition identify technical words correctly. Corrections fix common transcription mistakes automatically."))
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: 320)
                 HStack(spacing: 12) {
@@ -115,7 +115,7 @@ struct DictionarySettingsView: View {
 
                 Text(String(localized: "Pre-built collections of technical terms for common domains"))
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
             Spacer()
         }
@@ -150,7 +150,7 @@ private struct TermPackCardView: View {
             HStack(spacing: 10) {
                 Image(systemName: pack.icon)
                     .font(.title3)
-                    .foregroundColor(isActivated ? .accentColor : .secondary)
+                    .foregroundStyle(isActivated ? Color.accentColor : .secondary)
                     .frame(width: 28)
 
                 VStack(alignment: .leading, spacing: 2) {
@@ -159,7 +159,7 @@ private struct TermPackCardView: View {
                         .fontWeight(.medium)
                     Text(pack.description)
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
 
@@ -167,7 +167,7 @@ private struct TermPackCardView: View {
 
                 Text(String(format: String(localized: "%d terms"), pack.terms.count))
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
 
                 Toggle("", isOn: Binding(
                     get: { isActivated },
@@ -183,7 +183,7 @@ private struct TermPackCardView: View {
                 } label: {
                     Image(systemName: "chevron.right")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                         .rotationEffect(.degrees(isExpanded ? 90 : 0))
                 }
                 .buttonStyle(.plain)
@@ -202,7 +202,7 @@ private struct TermPackCardView: View {
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
                             .background(Color.accentColor.opacity(0.1))
-                            .cornerRadius(4)
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
                     }
                 }
                 .padding(10)
@@ -234,21 +234,21 @@ private struct DictionaryCardView: View {
             Text(entry.type.displayName)
                 .font(.caption)
                 .fontWeight(.medium)
-                .foregroundColor(entry.type == .correction ? .orange : .accentColor)
+                .foregroundStyle(entry.type == .correction ? Color.orange : Color.accentColor)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
                 .background((entry.type == .correction ? Color.orange : Color.accentColor).opacity(0.12))
-                .cornerRadius(5)
+                .clipShape(RoundedRectangle(cornerRadius: 5))
 
             if entry.type == .correction, let replacement = entry.replacement {
                 Text(entry.original)
                     .font(.callout)
                     .strikethrough()
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
 
                 Image(systemName: "arrow.right")
                     .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
 
                 Text(replacement)
                     .font(.callout)
@@ -265,8 +265,8 @@ private struct DictionaryCardView: View {
                     .padding(.horizontal, 5)
                     .padding(.vertical, 2)
                     .background(Color.secondary.opacity(0.12))
-                    .foregroundColor(.secondary)
-                    .cornerRadius(3)
+                    .foregroundStyle(.secondary)
+                    .clipShape(RoundedRectangle(cornerRadius: 3))
             }
 
             Spacer()
@@ -338,14 +338,14 @@ private struct DictionaryEditorSheet: View {
                      ? String(localized: "Terms are sent to the transcription service for better recognition")
                      : String(localized: "Corrections replace text after transcription"))
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
 
                 GroupBox(viewModel.editType == .term ? String(localized: "Term") : String(localized: "Correction")) {
                     VStack(alignment: .leading, spacing: 12) {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(viewModel.editType == .term ? String(localized: "Term") : String(localized: "Wrong Text"))
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(.secondary)
                             TextField(
                                 viewModel.editType == .term
                                     ? String(localized: "e.g. Kubernetes")
@@ -360,7 +360,7 @@ private struct DictionaryEditorSheet: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(String(localized: "Correct Text"))
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundStyle(.secondary)
                                 TextField(String(localized: "e.g. Kubernetes"), text: $viewModel.editReplacement)
                                     .textFieldStyle(.roundedBorder)
                                     .focused($focusedField, equals: .replacement)

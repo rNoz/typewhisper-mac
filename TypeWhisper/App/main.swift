@@ -6,7 +6,7 @@ import Foundation
 
 private class OverrideBundle: Bundle, @unchecked Sendable {
     override func localizedString(forKey key: String, value: String?, table tableName: String?) -> String {
-        guard let lang = UserDefaults.standard.string(forKey: "preferredAppLanguage") else {
+        guard let lang = UserDefaults.standard.string(forKey: UserDefaultsKeys.preferredAppLanguage) else {
             return super.localizedString(forKey: key, value: value, table: tableName)
         }
 

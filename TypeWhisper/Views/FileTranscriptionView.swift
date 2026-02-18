@@ -273,7 +273,7 @@ struct FileTranscriptionView: View {
     private func handleDrop(_ providers: [NSItemProvider]) -> Bool {
         var handled = false
         for provider in providers {
-            provider.loadItem(forTypeIdentifier: "public.file-url") { data, _ in
+            provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier) { data, _ in
                 guard let data = data as? Data,
                       let url = URL(dataRepresentation: data, relativeTo: nil) else { return }
 

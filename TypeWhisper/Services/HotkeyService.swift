@@ -51,10 +51,10 @@ final class HotkeyService: ObservableObject {
     ]
 
     func setup() {
-        singleKeyMode = UserDefaults.standard.bool(forKey: "hotkeyUseSingleKey")
-        singleKeyCode = UInt16(UserDefaults.standard.integer(forKey: "singleKeyCode"))
-        singleKeyIsFn = UserDefaults.standard.bool(forKey: "singleKeyIsFn")
-        singleKeyIsModifier = UserDefaults.standard.bool(forKey: "singleKeyIsModifier")
+        singleKeyMode = UserDefaults.standard.bool(forKey: UserDefaultsKeys.hotkeyUseSingleKey)
+        singleKeyCode = UInt16(UserDefaults.standard.integer(forKey: UserDefaultsKeys.singleKeyCode))
+        singleKeyIsFn = UserDefaults.standard.bool(forKey: UserDefaultsKeys.singleKeyIsFn)
+        singleKeyIsModifier = UserDefaults.standard.bool(forKey: UserDefaultsKeys.singleKeyIsModifier)
 
         if !singleKeyMode {
             KeyboardShortcuts.onKeyDown(for: .toggleDictation) { [weak self] in
@@ -82,10 +82,10 @@ final class HotkeyService: ObservableObject {
         modifierWasDown = false
         singleKeyWasDown = false
 
-        UserDefaults.standard.set(true, forKey: "hotkeyUseSingleKey")
-        UserDefaults.standard.set(Int(code), forKey: "singleKeyCode")
-        UserDefaults.standard.set(isFn, forKey: "singleKeyIsFn")
-        UserDefaults.standard.set(singleKeyIsModifier, forKey: "singleKeyIsModifier")
+        UserDefaults.standard.set(true, forKey: UserDefaultsKeys.hotkeyUseSingleKey)
+        UserDefaults.standard.set(Int(code), forKey: UserDefaultsKeys.singleKeyCode)
+        UserDefaults.standard.set(isFn, forKey: UserDefaultsKeys.singleKeyIsFn)
+        UserDefaults.standard.set(singleKeyIsModifier, forKey: UserDefaultsKeys.singleKeyIsModifier)
 
         // Remove KeyboardShortcuts handlers and reinstall monitors
         KeyboardShortcuts.disable(.toggleDictation)
@@ -99,7 +99,7 @@ final class HotkeyService: ObservableObject {
         modifierWasDown = false
         singleKeyWasDown = false
 
-        UserDefaults.standard.set(false, forKey: "hotkeyUseSingleKey")
+        UserDefaults.standard.set(false, forKey: UserDefaultsKeys.hotkeyUseSingleKey)
 
         tearDownSingleKeyMonitor()
         setupSingleKeyMonitor()

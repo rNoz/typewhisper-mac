@@ -58,7 +58,7 @@ struct ModelInfo: Identifiable, Hashable {
         let modelLangCode = Locale(identifier: localeId).language.languageCode?.identifier
 
         // Match against user's selected language, or system language if auto-detect
-        if let selected = UserDefaults.standard.string(forKey: "selectedLanguage") {
+        if let selected = UserDefaults.standard.string(forKey: UserDefaultsKeys.selectedLanguage) {
             return modelLangCode == selected
         }
         // Auto-detect: recommend system language

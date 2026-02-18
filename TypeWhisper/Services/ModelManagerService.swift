@@ -16,9 +16,9 @@ final class ModelManagerService: ObservableObject {
 
     var cloudEngines: [CloudTranscriptionEngine] { [groqEngine, openAiEngine] }
 
-    private let engineKey = "selectedEngine"
-    private let modelKey = "selectedModelId"
-    private let loadedModelsKey = "loadedModelIds"
+    private let engineKey = UserDefaultsKeys.selectedEngine
+    private let modelKey = UserDefaultsKeys.selectedModelId
+    private let loadedModelsKey = UserDefaultsKeys.loadedModelIds
 
     init() {
         if #available(macOS 26, *) {

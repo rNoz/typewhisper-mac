@@ -32,17 +32,35 @@ final class AudioRecordingService: ObservableObject, @unchecked Sendable {
     @Published var didAutoStop: Bool = false
 
     /// RMS threshold below which audio is considered silence
-    var silenceThreshold: Float = 0.01
+    var silenceThreshold: Float {
+        get { configLock.withLock { _silenceThreshold } }
+        set { configLock.withLock { _silenceThreshold = newValue } }
+    }
     /// Duration of continuous silence before auto-stop triggers
-    var silenceAutoStopDuration: TimeInterval = 2.0
+    var silenceAutoStopDuration: TimeInterval {
+        get { configLock.withLock { _silenceAutoStopDuration } }
+        set { configLock.withLock { _silenceAutoStopDuration = newValue } }
+    }
     /// Gain multiplier applied to audio samples (1.0 = normal, 4.0 = whisper mode)
-    var gainMultiplier: Float = 1.0
+    var gainMultiplier: Float {
+        get { configLock.withLock { _gainMultiplier } }
+        set { configLock.withLock { _gainMultiplier = newValue } }
+    }
     /// CoreAudio device ID to use for recording. nil = system default input.
-    var selectedDeviceID: AudioDeviceID?
+    var selectedDeviceID: AudioDeviceID? {
+        get { configLock.withLock { _selectedDeviceID } }
+        set { configLock.withLock { _selectedDeviceID = newValue } }
+    }
+
+    private var _silenceThreshold: Float = 0.01
+    private var _silenceAutoStopDuration: TimeInterval = 2.0
+    private var _gainMultiplier: Float = 1.0
+    private var _selectedDeviceID: AudioDeviceID?
 
     private var audioEngine: AVAudioEngine?
     private var sampleBuffer: [Float] = []
     private let bufferLock = NSLock()
+    private let configLock = NSLock()
     private var silenceStart: Date?
     private let processingQueue = DispatchQueue(label: "com.typewhisper.audio-processing", qos: .userInteractive)
 

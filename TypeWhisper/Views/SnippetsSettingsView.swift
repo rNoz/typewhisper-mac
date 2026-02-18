@@ -12,7 +12,7 @@ struct SnippetsSettingsView: View {
                 HStack {
                     Text(String(format: String(localized: "%d Snippets"), viewModel.snippets.count))
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
 
                     Spacer()
 
@@ -58,13 +58,13 @@ struct SnippetsSettingsView: View {
             VStack(spacing: 12) {
                 Image(systemName: "text.badge.plus")
                     .font(.system(size: 40))
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                 Text(String(localized: "No snippets yet"))
                     .font(.headline)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                 Text(String(localized: "Create snippets to automatically expand short triggers into longer text"))
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: 320)
                 Button(String(localized: "Add Snippet")) {
@@ -89,20 +89,20 @@ private struct SnippetCardView: View {
             Text(snippet.trigger)
                 .font(.system(.callout, design: .monospaced))
                 .fontWeight(.semibold)
-                .foregroundColor(.accentColor)
+                .foregroundStyle(Color.accentColor)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
                 .background(Color.accentColor.opacity(0.12))
-                .cornerRadius(5)
+                .clipShape(RoundedRectangle(cornerRadius: 5))
 
             Image(systemName: "arrow.right")
                 .font(.caption2)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
 
             Text(snippet.replacement)
                 .font(.callout)
                 .lineLimit(1)
-                .foregroundColor(.primary)
+                .foregroundStyle(.primary)
 
             if snippet.caseSensitive {
                 Text("Aa")
@@ -110,8 +110,8 @@ private struct SnippetCardView: View {
                     .padding(.horizontal, 5)
                     .padding(.vertical, 2)
                     .background(Color.secondary.opacity(0.12))
-                    .foregroundColor(.secondary)
-                    .cornerRadius(3)
+                    .foregroundStyle(.secondary)
+                    .clipShape(RoundedRectangle(cornerRadius: 3))
             }
 
             Spacer()
@@ -182,7 +182,7 @@ private struct SnippetEditorSheet: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(String(localized: "Trigger"))
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(.secondary)
                             TextField(String(localized: "e.g. addr"), text: $viewModel.editTrigger)
                                 .textFieldStyle(.roundedBorder)
                                 .font(.system(.body, design: .monospaced))
@@ -192,13 +192,13 @@ private struct SnippetEditorSheet: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(String(localized: "Replacement"))
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(.secondary)
                             TextEditor(text: $viewModel.editReplacement)
                                 .font(.body)
                                 .frame(height: 100)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 6)
-                                        .stroke(Color(NSColor.separatorColor), lineWidth: 1)
+                                        .stroke(.separator, lineWidth: 1)
                                 )
                                 .focused($focusedField, equals: .replacement)
                         }
@@ -212,7 +212,7 @@ private struct SnippetEditorSheet: View {
                     VStack(alignment: .leading, spacing: 10) {
                         Text(String(localized: "Click to insert a placeholder:"))
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
 
                         HStack(spacing: 16) {
                             PlaceholderTag(
@@ -288,8 +288,8 @@ private struct PlaceholderTag: View {
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
                 .background(Color.accentColor.opacity(0.15))
-                .foregroundColor(.accentColor)
-                .cornerRadius(6)
+                .foregroundStyle(Color.accentColor)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
                 .onTapGesture {
                     onInsert()
                 }
@@ -301,7 +301,7 @@ private struct PlaceholderTag: View {
                     .fontWeight(.medium)
                 Text(String(localized: "e.g.") + " " + example)
                     .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
         }
         .frame(minWidth: 100, alignment: .leading)

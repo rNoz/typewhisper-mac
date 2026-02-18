@@ -92,6 +92,7 @@
 		AA00000000000000000106 /* OutputFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000106 /* OutputFormatter.swift */; };
 		AA00000000000000000107 /* typewhisper-cli in CopyFiles */ = {isa = PBXBuildFile; fileRef = DD00000000000000000098 /* typewhisper-cli */; };
 		AA00000000000000000108 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000109 /* PrivacyInfo.xcprivacy */; };
+		AA00000000000000000110 /* UserDefaultsKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000110 /* UserDefaultsKeys.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -181,6 +182,7 @@
 		BB00000000000000000107 /* TypeWhisper.AppStore.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TypeWhisper.AppStore.entitlements; sourceTree = "<group>"; };
 		BB00000000000000000108 /* Info.AppStore.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.AppStore.plist; sourceTree = "<group>"; };
 		BB00000000000000000109 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		BB00000000000000000110 /* UserDefaultsKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsKeys.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -265,6 +267,7 @@
 				BB00000000000000000001 /* TypeWhisperApp.swift */,
 				BB00000000000000000002 /* ServiceContainer.swift */,
 				BB00000000000000000070 /* UpdateChecker.swift */,
+				BB00000000000000000110 /* UserDefaultsKeys.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -625,6 +628,7 @@
 				AA00000000000000000092 /* SetupWizardView.swift in Sources */,
 				AA00000000000000000094 /* AudioWaveformView.swift in Sources */,
 				AA00000000000000000093 /* main.swift in Sources */,
+				AA00000000000000000110 /* UserDefaultsKeys.swift in Sources */,
 				AA00000000000000000095 /* WavEncoder.swift in Sources */,
 				AA00000000000000000096 /* KeychainService.swift in Sources */,
 				AA00000000000000000097 /* CloudTranscriptionEngine.swift in Sources */,

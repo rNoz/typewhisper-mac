@@ -27,6 +27,8 @@
 	<string>public.app-category.productivity</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>TypeWhisper Local needs microphone access for speech-to-text transcription.</string>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>TypeWhisper detects the current browser URL to apply language profiles automatically.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>

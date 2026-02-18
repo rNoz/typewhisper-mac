@@ -11,7 +11,6 @@ final class TextInsertionService {
 
 enum InsertionResult {
         case pasted
-        case copiedToClipboard
     }
 
     enum TextInsertionError: LocalizedError {
@@ -160,7 +159,7 @@ enum InsertionResult {
         return trimmed.hasPrefix("http://") || trimmed.hasPrefix("https://") || trimmed.hasPrefix("file://")
     }
 
-    func insertText(_ text: String, forcePaste: Bool = false) async throws -> InsertionResult {
+    func insertText(_ text: String) async throws -> InsertionResult {
         guard isAccessibilityGranted else {
             throw TextInsertionError.accessibilityNotGranted
         }
@@ -172,53 +171,6 @@ enum InsertionResult {
         pasteboard.setString(text, forType: .string)
         simulatePaste()
         return .pasted
-    }
-
-    private func isFocusedElementTextInput() -> Bool {
-        let systemWide = AXUIElementCreateSystemWide()
-
-        var focusedElement: AnyObject?
-        let result = AXUIElementCopyAttributeValue(systemWide, kAXFocusedUIElementAttribute as CFString, &focusedElement)
-        guard result == .success, let element = focusedElement else {
-            return false
-        }
-
-        let axElement = element as! AXUIElement
-
-        // Check role
-        var roleValue: AnyObject?
-        let roleResult = AXUIElementCopyAttributeValue(axElement, kAXRoleAttribute as CFString, &roleValue)
-        if roleResult == .success, let role = roleValue as? String {
-            let textInputRoles: Set<String> = ["AXTextField", "AXTextArea", "AXComboBox", "AXSearchField"]
-            if textInputRoles.contains(role) {
-                return true
-            }
-
-            // AXWebArea is the browser's content area — supports text selection
-            // but is not an editable text input. Contenteditable fields typically
-            // appear as AXTextArea in modern browsers.
-            if role == "AXWebArea" {
-                return false
-            }
-
-            // Known non-text roles: reject before fallback heuristic to avoid
-            // false positives in IDEs (e.g. file explorer, settings panels)
-            let nonTextRoles: Set<String> = [
-                "AXOutline", "AXList", "AXTable", "AXToolbar",
-                "AXButton", "AXGroup", "AXSplitGroup", "AXTabGroup",
-                "AXMenu", "AXMenuItem", "AXMenuBar", "AXStaticText",
-                "AXImage", "AXScrollBar", "AXSlider", "AXRow",
-                "AXProgressIndicator",
-            ]
-            if nonTextRoles.contains(role) {
-                return false
-            }
-        }
-
-        // Fallback: check if element supports text selection (indicates text input)
-        var selectedRange: AnyObject?
-        let rangeResult = AXUIElementCopyAttributeValue(axElement, kAXSelectedTextRangeAttribute as CFString, &selectedRange)
-        return rangeResult == .success
     }
 
     func focusedElementPosition() -> CGPoint? {

@@ -35,7 +35,7 @@ class DictionaryViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var selectedEntry: DictionaryEntry?
 
-    private static let activatedPacksKey = "activatedTermPacks"
+    private static let activatedPacksKey = UserDefaultsKeys.activatedTermPacks
 
     var filteredEntries: [DictionaryEntry] {
         switch filterTab {

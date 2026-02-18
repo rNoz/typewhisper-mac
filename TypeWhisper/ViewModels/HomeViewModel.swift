@@ -43,7 +43,7 @@ final class HomeViewModel: ObservableObject {
     @Published var timeSaved: String = "—"
     @Published var chartData: [ActivityDataPoint] = []
     @Published var showSetupWizard: Bool {
-        didSet { UserDefaults.standard.set(!showSetupWizard, forKey: "setupWizardCompleted") }
+        didSet { UserDefaults.standard.set(!showSetupWizard, forKey: UserDefaultsKeys.setupWizardCompleted) }
     }
 
     private let historyService: HistoryService
@@ -52,7 +52,7 @@ final class HomeViewModel: ObservableObject {
 
     init(historyService: HistoryService) {
         self.historyService = historyService
-        self.showSetupWizard = !UserDefaults.standard.bool(forKey: "setupWizardCompleted")
+        self.showSetupWizard = !UserDefaults.standard.bool(forKey: UserDefaultsKeys.setupWizardCompleted)
 
         setupBindings()
         refresh()

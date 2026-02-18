@@ -21,7 +21,7 @@ final class AudioDeviceService: ObservableObject, @unchecked Sendable {
     @Published var selectedDeviceUID: String? {
         didSet {
             if selectedDeviceUID != oldValue {
-                UserDefaults.standard.set(selectedDeviceUID, forKey: "selectedInputDeviceUID")
+                UserDefaults.standard.set(selectedDeviceUID, forKey: UserDefaultsKeys.selectedInputDeviceUID)
             }
         }
     }
@@ -40,7 +40,7 @@ final class AudioDeviceService: ObservableObject, @unchecked Sendable {
     private var cancellables = Set<AnyCancellable>()
 
     init() {
-        selectedDeviceUID = UserDefaults.standard.string(forKey: "selectedInputDeviceUID")
+        selectedDeviceUID = UserDefaults.standard.string(forKey: UserDefaultsKeys.selectedInputDeviceUID)
         inputDevices = listInputDevices()
         installDeviceListener()
 
@@ -116,7 +116,8 @@ final class AudioDeviceService: ObservableObject, @unchecked Sendable {
         let rms = sqrt(sum / Float(max(frames, 1)))
         let level = min(1.0, rms * 5)
         DispatchQueue.main.async { [weak self] in
-            self?.previewAudioLevel = level
+            guard let self, self.isPreviewActive else { return }
+            self.previewAudioLevel = level
         }
     }
 

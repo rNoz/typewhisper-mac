@@ -41,6 +41,7 @@ final class SpeechAnalyzerEngine: TranscriptionEngine, @unchecked Sendable {
 
     private(set) var isModelLoaded = false
     private var currentLocale: Locale?
+    private var releaseTask: Task<Void, Never>?
 
     var supportedLanguages: [String] {
         // Return all languages from cached SpeechAnalyzer models
@@ -68,6 +69,9 @@ final class SpeechAnalyzerEngine: TranscriptionEngine, @unchecked Sendable {
             throw TranscriptionEngineError.modelLoadFailed(
                 String(localized: "Language not supported by Apple Speech"))
         }
+
+        // Wait for any pending release before loading
+        await releaseTask?.value
 
         progress(0.2, nil)
 
@@ -100,7 +104,7 @@ final class SpeechAnalyzerEngine: TranscriptionEngine, @unchecked Sendable {
 
     func unloadModel() {
         if let locale = currentLocale {
-            Task { await AssetInventory.release(reservedLocale: locale) }
+            releaseTask = Task { await AssetInventory.release(reservedLocale: locale) }
         }
         currentLocale = nil
         isModelLoaded = false

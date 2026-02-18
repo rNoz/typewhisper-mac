@@ -4,7 +4,7 @@ import ServiceManagement
 struct GeneralSettingsView: View {
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var appLanguage: String = {
-        if let lang = UserDefaults.standard.string(forKey: "preferredAppLanguage") {
+        if let lang = UserDefaults.standard.string(forKey: UserDefaultsKeys.preferredAppLanguage) {
             return lang
         }
         return Locale.preferredLanguages.first?.hasPrefix("de") == true ? "de" : "en"
@@ -74,9 +74,8 @@ struct GeneralSettingsView: View {
                     Text("Deutsch").tag("de")
                 }
                 .onChange(of: appLanguage) {
-                    UserDefaults.standard.set(appLanguage, forKey: "preferredAppLanguage")
+                    UserDefaults.standard.set(appLanguage, forKey: UserDefaultsKeys.preferredAppLanguage)
                     UserDefaults.standard.set([appLanguage], forKey: "AppleLanguages")
-                    UserDefaults.standard.synchronize()
                     showRestartAlert = true
                 }
             }

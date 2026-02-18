@@ -6,7 +6,7 @@ import os.log
 private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "TypeWhisper", category: "DictionaryService")
 
 @MainActor
-class DictionaryService: ObservableObject {
+final class DictionaryService: ObservableObject {
     private var modelContainer: ModelContainer?
     private var modelContext: ModelContext?
 

@@ -13,10 +13,10 @@ final class APIServerViewModel: ObservableObject {
 
     @Published var isRunning = false
     @Published var isEnabled: Bool {
-        didSet { UserDefaults.standard.set(isEnabled, forKey: "apiServerEnabled") }
+        didSet { UserDefaults.standard.set(isEnabled, forKey: UserDefaultsKeys.apiServerEnabled) }
     }
     @Published var port: UInt16 {
-        didSet { UserDefaults.standard.set(Int(port), forKey: "apiServerPort") }
+        didSet { UserDefaults.standard.set(Int(port), forKey: UserDefaultsKeys.apiServerPort) }
     }
     @Published var errorMessage: String?
 
@@ -24,8 +24,8 @@ final class APIServerViewModel: ObservableObject {
 
     init(httpServer: HTTPServer) {
         self.httpServer = httpServer
-        self.isEnabled = UserDefaults.standard.bool(forKey: "apiServerEnabled")
-        let savedPort = UserDefaults.standard.integer(forKey: "apiServerPort")
+        self.isEnabled = UserDefaults.standard.bool(forKey: UserDefaultsKeys.apiServerEnabled)
+        let savedPort = UserDefaults.standard.integer(forKey: UserDefaultsKeys.apiServerPort)
         self.port = savedPort > 0 ? UInt16(savedPort) : 8978
 
         httpServer.onStateChange = { [weak self] running in

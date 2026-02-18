@@ -13,22 +13,22 @@ final class SettingsViewModel: ObservableObject {
 
     @Published var selectedLanguage: String? {
         didSet {
-            UserDefaults.standard.set(selectedLanguage, forKey: "selectedLanguage")
+            UserDefaults.standard.set(selectedLanguage, forKey: UserDefaultsKeys.selectedLanguage)
         }
     }
     @Published var selectedTask: TranscriptionTask {
         didSet {
-            UserDefaults.standard.set(selectedTask.rawValue, forKey: "selectedTask")
+            UserDefaults.standard.set(selectedTask.rawValue, forKey: UserDefaultsKeys.selectedTask)
         }
     }
     @Published var translationEnabled: Bool {
         didSet {
-            UserDefaults.standard.set(translationEnabled, forKey: "translationEnabled")
+            UserDefaults.standard.set(translationEnabled, forKey: UserDefaultsKeys.translationEnabled)
         }
     }
     @Published var translationTargetLanguage: String {
         didSet {
-            UserDefaults.standard.set(translationTargetLanguage, forKey: "translationTargetLanguage")
+            UserDefaults.standard.set(translationTargetLanguage, forKey: UserDefaultsKeys.translationTargetLanguage)
         }
     }
 
@@ -37,11 +37,11 @@ final class SettingsViewModel: ObservableObject {
 
     init(modelManager: ModelManagerService) {
         self.modelManager = modelManager
-        self.selectedLanguage = UserDefaults.standard.string(forKey: "selectedLanguage")
-        self.selectedTask = UserDefaults.standard.string(forKey: "selectedTask")
+        self.selectedLanguage = UserDefaults.standard.string(forKey: UserDefaultsKeys.selectedLanguage)
+        self.selectedTask = UserDefaults.standard.string(forKey: UserDefaultsKeys.selectedTask)
             .flatMap { TranscriptionTask(rawValue: $0) } ?? .transcribe
-        self.translationEnabled = UserDefaults.standard.bool(forKey: "translationEnabled")
-        self.translationTargetLanguage = UserDefaults.standard.string(forKey: "translationTargetLanguage") ?? "en"
+        self.translationEnabled = UserDefaults.standard.bool(forKey: UserDefaultsKeys.translationEnabled)
+        self.translationTargetLanguage = UserDefaults.standard.string(forKey: UserDefaultsKeys.translationTargetLanguage) ?? "en"
     }
 
     var availableLanguages: [(code: String, name: String)] {
