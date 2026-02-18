@@ -54,7 +54,7 @@
 		AA00000000000000000068 /* ProfilesSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000068 /* ProfilesSettingsView.swift */; };
 		AA00000000000000000069 /* SpeechAnalyzerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000069 /* SpeechAnalyzerEngine.swift */; };
 		AA00000000000000000070 /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000070 /* UpdateChecker.swift */; };
-		AA00000000000000000071 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = PP00000000000000000004 /* Sparkle */; };
+		AA00000000000000000071 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = PP00000000000000000004 /* Sparkle */; settings = {ATTRIBUTES = (Weak, ); }; };
 		AA00000000000000000072 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000072 /* Assets.xcassets */; };
 		AA00000000000000000073 /* TranslationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000073 /* TranslationService.swift */; };
 		AA00000000000000000074 /* AudioDuckingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000074 /* AudioDuckingService.swift */; };
@@ -451,7 +451,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if echo \"${SWIFT_ACTIVE_COMPILATION_CONDITIONS}\" | grep -q \"APPSTORE\"; then\n    rm -f \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Contents/MacOS/typewhisper-cli\"\n    rm -rf \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Contents/Frameworks/Sparkle.framework\"\nfi\n";
+			shellScript = "if echo \"${SWIFT_ACTIVE_COMPILATION_CONDITIONS}\" | grep -q \"APPSTORE\"; then\n    # Re-sign Sparkle in build products dir to match app Team ID (fixes dyld on macOS 26)\n    /usr/bin/codesign --force --deep --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" \"${BUILT_PRODUCTS_DIR}/Sparkle.framework\" 2>/dev/null || true\n    # Remove CLI and Sparkle from app bundle for App Store\n    rm -f \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Contents/MacOS/typewhisper-cli\"\n    rm -rf \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Contents/Frameworks/Sparkle.framework\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
