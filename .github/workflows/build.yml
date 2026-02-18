@@ -1,0 +1,77 @@
+name: Build DMG
+
+on:
+  push:
+    branches:
+      - '**'
+      - '!main'
+      - '!gh-pages'
+    tags-ignore:
+      - 'v*'
+  pull_request:
+    branches: [main]
+
+env:
+  SCHEME: TypeWhisper
+  PROJECT: TypeWhisper.xcodeproj
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "26.2"
+
+      - name: Resolve Swift packages
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project $PROJECT \
+            -scheme $SCHEME
+
+      - name: Build App
+        run: |
+          xcodebuild -project $PROJECT \
+            -scheme $SCHEME \
+            -configuration Release \
+            -derivedDataPath build \
+            -destination 'generic/platform=macOS' \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Install dmgbuild
+        run: |
+          VENV_DIR="${RUNNER_TEMP}/dmgbuild-venv"
+          python3 -m venv "$VENV_DIR"
+          source "$VENV_DIR/bin/activate"
+          python -m pip install --upgrade pip
+          python -m pip install dmgbuild
+          echo "$VENV_DIR/bin" >> $GITHUB_PATH
+
+      - name: Create DMG
+        run: |
+          SHORT_SHA="${GITHUB_SHA::7}"
+          APP_NAME="TypeWhisper"
+          DMG_NAME="TypeWhisper-${SHORT_SHA}.dmg"
+          APP_PATH="build/Build/Products/Release/TypeWhisper.app"
+          SETTINGS="${GITHUB_WORKSPACE}/.github/dmgbuild-settings.py"
+          BACKGROUND="${GITHUB_WORKSPACE}/.github/dmg-background.png"
+
+          dmgbuild -s "$SETTINGS" \
+            -D app="$APP_NAME" \
+            -D app_path="$APP_PATH" \
+            -D background="$BACKGROUND" \
+            "$APP_NAME" \
+            "build/${DMG_NAME}"
+
+      - name: Upload DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: TypeWhisper-DMG
+          path: build/TypeWhisper-*.dmg
+          retention-days: 14
