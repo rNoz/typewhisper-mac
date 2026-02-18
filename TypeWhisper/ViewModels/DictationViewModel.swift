@@ -159,9 +159,9 @@ final class DictationViewModel: ObservableObject {
         self.notchIndicatorVisibility = UserDefaults.standard.string(forKey: UserDefaultsKeys.notchIndicatorVisibility)
             .flatMap { NotchIndicatorVisibility(rawValue: $0) } ?? .duringActivity
         self.notchIndicatorLeftContent = UserDefaults.standard.string(forKey: UserDefaultsKeys.notchIndicatorLeftContent)
-            .flatMap { NotchIndicatorContent(rawValue: $0) } ?? .indicator
-        self.notchIndicatorRightContent = UserDefaults.standard.string(forKey: UserDefaultsKeys.notchIndicatorRightContent)
             .flatMap { NotchIndicatorContent(rawValue: $0) } ?? .timer
+        self.notchIndicatorRightContent = UserDefaults.standard.string(forKey: UserDefaultsKeys.notchIndicatorRightContent)
+            .flatMap { NotchIndicatorContent(rawValue: $0) } ?? .waveform
 
         setupBindings()
     }
