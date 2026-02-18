@@ -142,6 +142,22 @@ struct NotchIndicatorView: View {
             } else {
                 Color.clear
             }
+        case .promptSelection:
+            if side == .leading {
+                Image(systemName: "text.bubble.fill")
+                    .foregroundStyle(.blue)
+                    .font(.system(size: 11))
+            } else {
+                Color.clear
+            }
+        case .promptProcessing:
+            if side == .leading {
+                ProgressView()
+                    .controlSize(.mini)
+                    .tint(.white)
+            } else {
+                Color.clear
+            }
         case .error:
             if side == .leading {
                 Image(systemName: "xmark.circle.fill")

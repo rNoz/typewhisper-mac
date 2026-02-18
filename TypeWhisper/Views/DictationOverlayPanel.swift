@@ -44,7 +44,7 @@ class DictationOverlayPanel: NSPanel {
 
     private func updateVisibility(state: DictationViewModel.State, vm: DictationViewModel) {
         switch state {
-        case .recording, .processing, .inserting, .error:
+        case .recording, .processing, .inserting, .promptSelection, .promptProcessing, .error:
             show()
         case .idle:
             dismiss()

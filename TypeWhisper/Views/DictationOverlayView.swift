@@ -102,6 +102,15 @@ struct DictationOverlayView: View {
                 .foregroundStyle(.green)
                 .font(.system(size: 14))
 
+        case .promptSelection:
+            Image(systemName: "text.bubble.fill")
+                .foregroundStyle(.blue)
+                .font(.system(size: 14))
+
+        case .promptProcessing:
+            ProgressView()
+                .controlSize(.small)
+
         case .error:
             Image(systemName: "xmark.circle.fill")
                 .foregroundStyle(.red)
@@ -136,6 +145,15 @@ struct DictationOverlayView: View {
             Text(String(localized: "Done"))
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.green)
+
+        case .promptSelection:
+            Text(String(localized: "Select prompt..."))
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.blue)
+
+        case .promptProcessing(let name):
+            Text(name)
+                .font(.system(size: 12, weight: .medium))
 
         case .error(let message):
             Text(message)

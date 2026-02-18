@@ -81,7 +81,7 @@ class NotchIndicatorPanel: NSPanel {
             show()
         case .duringActivity:
             switch state {
-            case .recording, .processing, .inserting, .error:
+            case .recording, .processing, .inserting, .promptSelection, .promptProcessing, .error:
                 show()
             case .idle:
                 dismiss()

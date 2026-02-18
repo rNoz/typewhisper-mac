@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import Combine
 import os
@@ -20,6 +21,8 @@ final class DictationViewModel: ObservableObject {
         case recording
         case processing
         case inserting
+        case promptSelection(String)    // text ready, user picks a prompt
+        case promptProcessing(String)   // prompt name, LLM running
         case error(String)
     }
 
@@ -49,6 +52,9 @@ final class DictationViewModel: ObservableObject {
     }
     @Published var singleKeyLabel: String
     @Published var activeProfileName: String?
+    @Published var availablePromptActions: [PromptAction] = []
+    @Published var selectedPromptIndex: Int = 0
+    @Published var promptResultText: String = ""
 
     enum OverlayPosition: String, CaseIterable {
         case top
@@ -113,6 +119,7 @@ final class DictationViewModel: ObservableObject {
     private var silenceCancellable: AnyCancellable?
     private var errorResetTask: Task<Void, Never>?
     private var urlResolutionTask: Task<Void, Never>?
+    private var promptDismissTask: Task<Void, Never>?
 
     init(
         audioRecordingService: AudioRecordingService,
@@ -505,6 +512,7 @@ final class DictationViewModel: ObservableObject {
     }
 
     private func resetDictationState() {
+        promptDismissTask?.cancel()
         errorResetTask?.cancel()
         urlResolutionTask?.cancel()
         urlResolutionTask = nil
@@ -513,6 +521,91 @@ final class DictationViewModel: ObservableObject {
         matchedProfile = nil
         capturedActiveApp = nil
         activeProfileName = nil
+    }
+
+    // MARK: - Prompt Selection
+
+    func enterPromptSelection(with text: String) {
+        let actions = promptActionService.getEnabledActions()
+        guard !actions.isEmpty else {
+            // No prompts configured, stay in clipboard-only mode
+            state = .inserting
+            Task {
+                try? await Task.sleep(for: .seconds(1.5))
+                guard !Task.isCancelled else { return }
+                resetDictationState()
+            }
+            return
+        }
+        availablePromptActions = actions
+        selectedPromptIndex = 0
+        state = .promptSelection(text)
+
+        promptDismissTask?.cancel()
+        promptDismissTask = Task {
+            try? await Task.sleep(for: .seconds(30))
+            guard !Task.isCancelled else { return }
+            if case .promptSelection = state {
+                dismissPromptSelection()
+            }
+        }
+    }
+
+    func selectPromptAction(_ action: PromptAction) {
+        guard case .promptSelection(let text) = state else { return }
+
+        promptDismissTask?.cancel()
+        state = .promptProcessing(action.name)
+        promptResultText = ""
+
+        transcriptionTask = Task {
+            do {
+                let result = try await promptProcessingService.process(
+                    prompt: action.prompt,
+                    text: text,
+                    providerOverride: action.providerType.flatMap { LLMProviderType(rawValue: $0) },
+                    cloudModelOverride: action.cloudModel
+                )
+                guard !Task.isCancelled else { return }
+
+                promptResultText = result
+
+                // Copy result to clipboard
+                let pasteboard = NSPasteboard.general
+                pasteboard.clearContents()
+                pasteboard.setString(result, forType: .string)
+
+                soundService.play(.transcriptionSuccess, enabled: soundFeedbackEnabled)
+                state = .inserting
+
+                try? await Task.sleep(for: .seconds(2))
+                guard !Task.isCancelled else { return }
+                resetDictationState()
+            } catch {
+                guard !Task.isCancelled else { return }
+                soundService.play(.error, enabled: soundFeedbackEnabled)
+                showError(error.localizedDescription)
+            }
+        }
+    }
+
+    func selectPromptByIndex(_ index: Int) {
+        guard index >= 0, index < availablePromptActions.count else { return }
+        selectPromptAction(availablePromptActions[index])
+    }
+
+    func movePromptSelection(by offset: Int) {
+        guard !availablePromptActions.isEmpty else { return }
+        selectedPromptIndex = max(0, min(availablePromptActions.count - 1, selectedPromptIndex + offset))
+    }
+
+    func confirmPromptSelection() {
+        guard selectedPromptIndex >= 0, selectedPromptIndex < availablePromptActions.count else { return }
+        selectPromptAction(availablePromptActions[selectedPromptIndex])
+    }
+
+    func dismissPromptSelection() {
+        resetDictationState()
     }
 
     private func showError(_ message: String) {
