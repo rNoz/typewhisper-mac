@@ -429,7 +429,19 @@ final class DictationViewModel: ObservableObject {
                 text = dictionaryService.applyCorrections(to: text)
 
                 partialText = ""
-                _ = try await textInsertionService.insertText(text)
+
+                // Check if there's a focused text field to insert into
+                let hasTextField = textInsertionService.hasFocusedTextField()
+
+                if hasTextField {
+                    // Normal flow: insert text directly
+                    _ = try await textInsertionService.insertText(text)
+                } else {
+                    // No text field: copy to clipboard for prompt selection
+                    let pasteboard = NSPasteboard.general
+                    pasteboard.clearContents()
+                    pasteboard.setString(text, forType: .string)
+                }
 
                 let modelDisplayName = modelManager.resolvedModelDisplayName(
                     engineOverride: engineOverride,
@@ -450,11 +462,14 @@ final class DictationViewModel: ObservableObject {
 
                 soundService.play(.transcriptionSuccess, enabled: soundFeedbackEnabled)
 
-                state = .inserting
-
-                try? await Task.sleep(for: .seconds(1.5))
-                guard !Task.isCancelled else { return }
-                resetDictationState()
+                if hasTextField {
+                    state = .inserting
+                    try? await Task.sleep(for: .seconds(1.5))
+                    guard !Task.isCancelled else { return }
+                    resetDictationState()
+                } else {
+                    enterPromptSelection(with: text)
+                }
             } catch {
                 guard !Task.isCancelled else { return }
                 soundService.play(.error, enabled: soundFeedbackEnabled)
