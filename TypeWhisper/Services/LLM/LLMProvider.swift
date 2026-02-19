@@ -43,19 +43,22 @@ enum LLMProviderType: String, CaseIterable, Identifiable {
                 knownModels: [
                     "llama-3.3-70b-versatile",
                     "llama-3.1-8b-instant",
+                    "openai/gpt-oss-120b",
+                    "openai/gpt-oss-20b",
                 ]
             )
         case .openai:
             CloudProviderConfig(
                 baseURL: "https://api.openai.com",
-                defaultModel: "gpt-4o-mini",
+                defaultModel: "gpt-4.1-nano",
                 keychainId: "openai",
                 knownModels: [
-                    "gpt-4o-mini",
-                    "gpt-4o",
-                    "gpt-4.1-nano",
-                    "gpt-4.1-mini",
+                    "gpt-5",
+                    "gpt-5-mini",
+                    "gpt-5-nano",
                     "gpt-4.1",
+                    "gpt-4.1-mini",
+                    "gpt-4.1-nano",
                     "o4-mini",
                 ]
             )
