@@ -140,6 +140,14 @@ struct DictationSettingsView: View {
                 Text(String(localized: "Select text in any app, press the shortcut, and choose a prompt to process the text."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
+
+                HStack {
+                    Text(String(localized: "Display duration"))
+                    Slider(value: $dictation.promptDisplayDuration, in: 3...30, step: 1)
+                    Text("\(Int(dictation.promptDisplayDuration))s")
+                        .monospacedDigit()
+                        .frame(width: 30, alignment: .trailing)
+                }
             }
 
             Section(String(localized: "Permissions")) {

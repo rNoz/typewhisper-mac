@@ -42,6 +42,9 @@ enum UserDefaultsKeys {
     // MARK: - Dictionary
     static let activatedTermPacks = "activatedTermPacks"
 
+    // MARK: - Prompt Palette
+    static let promptDisplayDuration = "promptDisplayDuration"
+
     // MARK: - Notch Indicator
     static let notchIndicatorVisibility = "notchIndicatorVisibility"
     static let notchIndicatorLeftContent = "notchIndicatorLeftContent"
