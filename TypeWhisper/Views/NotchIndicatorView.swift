@@ -11,6 +11,7 @@ struct NotchIndicatorView: View {
     @ObservedObject var geometry: NotchGeometry
     @State private var textExpanded = false
     @State private var dotPulse = false
+    @State private var pausePulse = false
 
     private let extensionWidth: CGFloat = 60
     /// Consistent horizontal padding for all expanded content (lists, results, text).
@@ -45,13 +46,18 @@ struct NotchIndicatorView: View {
         if case .promptProcessing = viewModel.state {
             return Color(red: 0.6, green: 0.3, blue: 1.0) // purple
         }
+        if case .paused = viewModel.state {
+            return Color(red: 1.0, green: 0.6, blue: 0.2) // amber/orange
+        }
         return Color(red: 0.3, green: 0.5, blue: 1.0) // blue
     }
 
     private var glowOpacity: Double {
         switch viewModel.state {
         case .recording:
-            return max(0.25, min(Double(viewModel.audioLevel) * 2.5, 0.9))
+            return max(0.4, min(Double(viewModel.audioLevel) * 3.5, 1.0))
+        case .paused:
+            return pausePulse ? 0.8 : 0.3
         case .promptProcessing:
             return 0.5
         default:
@@ -62,7 +68,9 @@ struct NotchIndicatorView: View {
     private var glowRadius: CGFloat {
         switch viewModel.state {
         case .recording:
-            return max(6, CGFloat(viewModel.audioLevel) * 25 + 4)
+            return max(10, CGFloat(viewModel.audioLevel) * 40 + 6)
+        case .paused:
+            return pausePulse ? 22 : 10
         case .promptProcessing:
             return 12
         default:
@@ -77,7 +85,7 @@ struct NotchIndicatorView: View {
                 .frame(height: geometry.notchHeight)
 
             // Expandable partial text area
-            if viewModel.state == .recording {
+            if viewModel.state == .recording || viewModel.state == .paused {
                 ScrollViewReader { proxy in
                     ScrollView(.vertical, showsIndicators: true) {
                         Text(viewModel.partialText)
@@ -131,8 +139,15 @@ struct NotchIndicatorView: View {
                 withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true)) {
                     dotPulse = true
                 }
+                pausePulse = false
+            } else if viewModel.state == .paused {
+                dotPulse = false
+                withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
+                    pausePulse = true
+                }
             } else {
                 dotPulse = false
+                pausePulse = false
                 switch viewModel.state {
                 case .promptSelection, .promptProcessing:
                     break // keep expanded
@@ -141,6 +156,7 @@ struct NotchIndicatorView: View {
                 }
             }
         }
+        .animation(.easeInOut(duration: 1.5), value: pausePulse)
     }
 
     // MARK: - Status bar (three-zone layout)
@@ -175,7 +191,7 @@ struct NotchIndicatorView: View {
         switch viewModel.state {
         case .idle:
             Color.clear
-        case .recording:
+        case .recording, .paused:
             recordingContent(for: content)
         case .processing:
             if side == .leading {
@@ -219,10 +235,13 @@ struct NotchIndicatorView: View {
         switch content {
         case .indicator:
             Circle()
-                .fill(.red)
+                .fill(viewModel.state == .paused ? Color.orange : Color.red)
                 .frame(width: 6, height: 6)
-                .scaleEffect(1.0 + CGFloat(viewModel.audioLevel) * 0.8)
-                .shadow(color: .yellow.opacity(dotPulse ? 0.8 : 0.2), radius: dotPulse ? 6 : 2)
+                .scaleEffect(viewModel.state == .paused ? (pausePulse ? 1.3 : 0.8) : 1.0 + CGFloat(viewModel.audioLevel) * 0.8)
+                .shadow(color: viewModel.state == .paused
+                    ? .orange.opacity(pausePulse ? 0.8 : 0.2)
+                    : .yellow.opacity(dotPulse ? 0.8 : 0.2),
+                    radius: viewModel.state == .paused ? (pausePulse ? 6 : 2) : (dotPulse ? 6 : 2))
         case .timer:
             Text(formatDuration(viewModel.recordingDuration))
                 .font(.system(size: 10, weight: .medium).monospacedDigit())

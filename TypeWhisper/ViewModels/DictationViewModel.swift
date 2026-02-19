@@ -19,6 +19,7 @@ final class DictationViewModel: ObservableObject {
     enum State: Equatable {
         case idle
         case recording
+        case paused          // silence detected, waiting for speech to resume
         case processing
         case inserting
         case promptSelection(String)    // text ready, user picks a prompt
@@ -46,6 +47,21 @@ final class DictationViewModel: ObservableObject {
     }
     @Published var soundFeedbackEnabled: Bool {
         didSet { UserDefaults.standard.set(soundFeedbackEnabled, forKey: UserDefaultsKeys.soundFeedbackEnabled) }
+    }
+    @Published var silencePauseEnabled: Bool {
+        didSet { UserDefaults.standard.set(silencePauseEnabled, forKey: UserDefaultsKeys.silencePauseEnabled) }
+    }
+    @Published var silenceAutoStopDuration: Double {
+        didSet {
+            UserDefaults.standard.set(silenceAutoStopDuration, forKey: UserDefaultsKeys.silenceAutoStopDuration)
+            audioRecordingService.silenceAutoStopDuration = silenceAutoStopDuration
+        }
+    }
+    @Published var silenceThreshold: Double {
+        didSet {
+            UserDefaults.standard.set(silenceThreshold, forKey: UserDefaultsKeys.silenceThreshold)
+            audioRecordingService.silenceThreshold = Float(silenceThreshold)
+        }
     }
     @Published var hybridHotkeyLabel: String
     @Published var pttHotkeyLabel: String
@@ -119,7 +135,7 @@ final class DictationViewModel: ObservableObject {
     private var recordingStartTime: Date?
     private var streamingTask: Task<Void, Never>?
     private var transcriptionTask: Task<Void, Never>?
-    private var silenceCancellable: AnyCancellable?
+    private var silenceTimer: Timer?
     private var errorResetTask: Task<Void, Never>?
     private var urlResolutionTask: Task<Void, Never>?
     private var promptDismissTask: Task<Void, Never>?
@@ -163,6 +179,13 @@ final class DictationViewModel: ObservableObject {
         self.audioDuckingLevel = UserDefaults.standard.object(forKey: UserDefaultsKeys.audioDuckingLevel) as? Double ?? 0.2
         self.mediaPauseEnabled = UserDefaults.standard.bool(forKey: UserDefaultsKeys.mediaPauseEnabled)
         self.soundFeedbackEnabled = UserDefaults.standard.object(forKey: UserDefaultsKeys.soundFeedbackEnabled) as? Bool ?? true
+        self.silencePauseEnabled = UserDefaults.standard.bool(forKey: UserDefaultsKeys.silencePauseEnabled)
+        let storedDuration = UserDefaults.standard.object(forKey: UserDefaultsKeys.silenceAutoStopDuration) as? Double ?? 4.0
+        self.silenceAutoStopDuration = storedDuration
+        audioRecordingService.silenceAutoStopDuration = storedDuration
+        let storedThreshold = UserDefaults.standard.object(forKey: UserDefaultsKeys.silenceThreshold) as? Double ?? 0.015
+        self.silenceThreshold = storedThreshold
+        audioRecordingService.silenceThreshold = Float(storedThreshold)
         self.promptDisplayDuration = UserDefaults.standard.object(forKey: UserDefaultsKeys.promptDisplayDuration) as? Double ?? 8.0
         self.hybridHotkeyLabel = Self.loadHotkeyLabel(for: .hybrid)
         self.pttHotkeyLabel = Self.loadHotkeyLabel(for: .pushToTalk)
@@ -212,17 +235,16 @@ final class DictationViewModel: ObservableObject {
 
         hotkeyService.$currentMode
             .dropFirst()
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] mode in
-                DispatchQueue.main.async {
-                    self?.hotkeyMode = mode
-                }
+                self?.hotkeyMode = mode
             }
             .store(in: &cancellables)
 
         audioDeviceService.$disconnectedDeviceName
             .compactMap { $0 }
             .sink { [weak self] _ in
-                guard let self, self.state == .recording else { return }
+                guard let self, self.state == .recording || self.state == .paused else { return }
                 self.stopDictation()
                 self.hotkeyService.cancelDictation()
                 self.showError(String(localized: "Microphone disconnected. Falling back to system default."))
@@ -268,7 +290,7 @@ final class DictationViewModel: ObservableObject {
                 logger.info("URL resolution: starting for bundleId=\(bundleId)")
                 let resolvedURL = await textInsertionService.resolveBrowserURL(bundleId: bundleId)
                 logger.info("URL resolution: resolvedURL=\(resolvedURL ?? "nil"), state=\(String(describing: self.state))")
-                guard state == .recording || state == .processing else {
+                guard state == .recording || state == .paused || state == .processing else {
                     logger.info("URL resolution: skipped - state is \(String(describing: self.state))")
                     return
                 }
@@ -361,14 +383,24 @@ final class DictationViewModel: ObservableObject {
     }
 
     private func stopDictation() {
-        guard state == .recording else { return }
+        guard state == .recording || state == .paused else { return }
 
+        // Capture trailing silence duration before stopping (for trimming)
+        let trailingSilence = audioRecordingService.silenceDuration
         audioDuckingService.restoreAudio()
         mediaPlaybackService.resumePlayback()
         stopStreaming()
         stopSilenceDetection()
         stopRecordingTimer()
-        let samples = audioRecordingService.stopRecording()
+        var samples = audioRecordingService.stopRecording()
+
+        // Always trim trailing silence to prevent Whisper hallucination
+        if trailingSilence > 0.3 {
+            let trimCount = Int(trailingSilence * AudioRecordingService.targetSampleRate)
+            if samples.count > trimCount {
+                samples = Array(samples.dropLast(trimCount))
+            }
+        }
 
         guard !samples.isEmpty else {
             resetDictationState()
@@ -723,7 +755,7 @@ final class DictationViewModel: ObservableObject {
             // Initial delay before first streaming attempt
             try? await Task.sleep(for: .seconds(1.5))
 
-            while !Task.isCancelled, self.state == .recording {
+            while !Task.isCancelled, self.state == .recording || self.state == .paused {
                 let buffer = self.audioRecordingService.getRecentBuffer(maxDuration: 3600)
                 let bufferDuration = Double(buffer.count) / 16000.0
 
@@ -821,26 +853,49 @@ final class DictationViewModel: ObservableObject {
     // MARK: - Silence Detection
 
     private func startSilenceDetection() {
-        // Only auto-stop in toggle mode, not push-to-talk
-        guard hotkeyMode == .toggle else { return }
+        stopSilenceDetection()
 
-        silenceCancellable = audioRecordingService.$silenceDuration
-            .dropFirst()
-            .sink { [weak self] duration in
-                DispatchQueue.main.async {
-                    guard let self, self.state == .recording else { return }
-                    if duration >= self.audioRecordingService.silenceAutoStopDuration {
-                        self.audioRecordingService.didAutoStop = true
-                        self.stopDictation()
-                        self.hotkeyService.cancelDictation()
-                    }
+        logger.info("startSilenceDetection: starting timer, hotkeyMode=\(String(describing: self.hotkeyMode))")
+        silenceTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.checkSilenceState()
+            }
+        }
+    }
+
+    private func checkSilenceState() {
+        // Only auto-stop in toggle mode, not push-to-talk
+        // Read directly from hotkeyService — self.hotkeyMode may lag behind due to Combine async dispatch
+        guard hotkeyService.currentMode == .toggle else { return }
+
+        let duration = audioRecordingService.silenceDuration
+        let threshold = audioRecordingService.silenceAutoStopDuration
+
+        if state == .recording {
+            if duration >= threshold {
+                logger.info("Silence detected: \(duration)s >= \(threshold)s, pauseEnabled=\(self.silencePauseEnabled)")
+                if silencePauseEnabled {
+                    audioRecordingService.pauseRecording()
+                    state = .paused
+                } else {
+                    audioRecordingService.didAutoStop = true
+                    stopDictation()
+                    hotkeyService.cancelDictation()
                 }
             }
+        } else if state == .paused {
+            if !audioRecordingService.isSilent {
+                logger.info("Speech resumed - unpausing")
+                audioRecordingService.resumeRecording()
+                state = .recording
+            }
+        }
     }
 
     private func stopSilenceDetection() {
-        silenceCancellable?.cancel()
-        silenceCancellable = nil
+        silenceTimer?.invalidate()
+        silenceTimer = nil
     }
 
     private func startRecordingTimer() {

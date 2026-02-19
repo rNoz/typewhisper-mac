@@ -121,25 +121,46 @@ struct GeneralSettingsView: View {
                 }
 
                 if audioDevice.isPreviewActive {
+                    // Level meter with silence threshold marker
                     HStack(spacing: 8) {
                         Image(systemName: "mic.fill")
                             .foregroundStyle(.secondary)
                             .font(.caption)
 
                         GeometryReader { geo in
+                            let maxRms: Float = 0.15
+                            let levelWidth = max(0, geo.size.width * CGFloat(min(audioDevice.previewRawLevel, maxRms) / maxRms))
+                            let thresholdX = geo.size.width * CGFloat(min(Float(dictation.silenceThreshold), maxRms) / maxRms)
+
                             ZStack(alignment: .leading) {
                                 RoundedRectangle(cornerRadius: 3)
                                     .fill(.quaternary)
 
                                 RoundedRectangle(cornerRadius: 3)
-                                    .fill(.green.gradient)
-                                    .frame(width: max(0, geo.size.width * CGFloat(audioDevice.previewAudioLevel)))
-                                    .animation(.easeOut(duration: 0.08), value: audioDevice.previewAudioLevel)
+                                    .fill(audioDevice.previewRawLevel < Float(dictation.silenceThreshold)
+                                        ? Color.orange.gradient : Color.green.gradient)
+                                    .frame(width: levelWidth)
+                                    .animation(.easeOut(duration: 0.08), value: audioDevice.previewRawLevel)
+
+                                // Silence threshold marker
+                                Rectangle()
+                                    .fill(.red)
+                                    .frame(width: 2)
+                                    .offset(x: thresholdX - 1)
                             }
                         }
                         .frame(height: 6)
                     }
                     .padding(.vertical, 4)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(String(localized: "Silence threshold"))
+                        Slider(value: $dictation.silenceThreshold, in: 0.01...0.12, step: 0.005)
+                    }
+
+                    Text(String(localized: "Adjust so the red line sits above the background noise level. Sound below the line counts as silence."))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
 
                 Button(audioDevice.isPreviewActive
@@ -161,7 +182,6 @@ struct GeneralSettingsView: View {
                     .foregroundStyle(.orange)
                     .font(.caption)
                     .onAppear {
-                        // Auto-dismiss after 5 seconds
                         DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
                             if audioDevice.disconnectedDeviceName == name {
                                 audioDevice.disconnectedDeviceName = nil
@@ -169,6 +189,22 @@ struct GeneralSettingsView: View {
                         }
                     }
                 }
+            }
+
+            Section(String(localized: "Silence Detection")) {
+                Toggle(String(localized: "Pause on silence instead of stopping"), isOn: $dictation.silencePauseEnabled)
+
+                HStack {
+                    Text(String(localized: "Silence duration"))
+                    Slider(value: $dictation.silenceAutoStopDuration, in: 2...10, step: 1)
+                    Text(String(format: "%.0fs", dictation.silenceAutoStopDuration))
+                        .font(.system(.body).monospacedDigit())
+                        .frame(width: 30, alignment: .trailing)
+                }
+
+                Text(String(localized: "When enabled, recording pauses during silence and resumes automatically when you speak again. Only applies to toggle hotkey mode."))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             Section(String(localized: "Sound")) {

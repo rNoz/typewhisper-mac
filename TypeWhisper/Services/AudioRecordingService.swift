@@ -27,9 +27,11 @@ final class AudioRecordingService: ObservableObject, @unchecked Sendable {
 
     @Published private(set) var isRecording = false
     @Published private(set) var audioLevel: Float = 0
+    @Published private(set) var rawAudioLevel: Float = 0
     @Published private(set) var isSilent: Bool = false
     @Published private(set) var silenceDuration: TimeInterval = 0
     @Published var didAutoStop: Bool = false
+    @Published private(set) var isPaused: Bool = false
 
     /// RMS threshold below which audio is considered silence
     var silenceThreshold: Float {
@@ -52,8 +54,8 @@ final class AudioRecordingService: ObservableObject, @unchecked Sendable {
         set { configLock.withLock { _selectedDeviceID = newValue } }
     }
 
-    private var _silenceThreshold: Float = 0.01
-    private var _silenceAutoStopDuration: TimeInterval = 2.0
+    private var _silenceThreshold: Float = 0.015
+    private var _silenceAutoStopDuration: TimeInterval = 4.0
     private var _gainMultiplier: Float = 1.0
     private var _selectedDeviceID: AudioDeviceID?
 
@@ -162,6 +164,7 @@ final class AudioRecordingService: ObservableObject, @unchecked Sendable {
         isSilent = false
         silenceDuration = 0
         didAutoStop = false
+        isPaused = false
 
         inputNode.installTap(onBus: 0, bufferSize: 4096, format: inputFormat) { [weak self] buffer, _ in
             self?.processAudioBuffer(buffer, converter: converter, targetFormat: targetFormat)
@@ -178,11 +181,38 @@ final class AudioRecordingService: ObservableObject, @unchecked Sendable {
         isRecording = true
     }
 
+    func pauseRecording() {
+        isPaused = true
+        // Trim the trailing silence from the buffer to prevent hallucination
+        trimTrailingSilence()
+    }
+
+    /// Removes the trailing silent samples from the buffer.
+    /// Called when pausing to avoid feeding silence to the transcription engine.
+    private func trimTrailingSilence() {
+        let trimSamples = Int(silenceAutoStopDuration * Self.targetSampleRate)
+        bufferLock.lock()
+        if sampleBuffer.count > trimSamples {
+            sampleBuffer.removeLast(trimSamples)
+        }
+        bufferLock.unlock()
+    }
+
+    func resumeRecording() {
+        isPaused = false
+        silenceStart = nil
+        DispatchQueue.main.async { [weak self] in
+            self?.isSilent = false
+            self?.silenceDuration = 0
+        }
+    }
+
     func stopRecording() -> [Float] {
         audioEngine?.inputNode.removeTap(onBus: 0)
         audioEngine?.stop()
         audioEngine = nil
         isRecording = false
+        isPaused = false
         audioLevel = 0
         isSilent = false
         silenceDuration = 0
@@ -241,6 +271,10 @@ final class AudioRecordingService: ObservableObject, @unchecked Sendable {
     }
 
     private func processConvertedSamples(_ rawSamples: [Float]) {
+        // Calculate raw RMS BEFORE gain for silence detection (gain-independent)
+        let rawRms = sqrt(rawSamples.reduce(0) { $0 + $1 * $1 } / Float(rawSamples.count))
+        let silent = rawRms < silenceThreshold
+
         var samples = rawSamples
 
         // Apply gain boost (whisper mode)
@@ -250,21 +284,26 @@ final class AudioRecordingService: ObservableObject, @unchecked Sendable {
             }
         }
 
-        // Calculate RMS audio level
+        // Calculate post-gain RMS for audio level display
         let rms = sqrt(samples.reduce(0) { $0 + $1 * $1 } / Float(samples.count))
         let normalizedLevel = min(1.0, rms * 5) // Scale up for visibility
-        let silent = rms < silenceThreshold
 
-        bufferLock.lock()
-        sampleBuffer.append(contentsOf: samples)
-        bufferLock.unlock()
+        // When paused, still detect silence/speech but don't write to buffer
+        if !isPaused {
+            bufferLock.lock()
+            sampleBuffer.append(contentsOf: samples)
+            bufferLock.unlock()
+        }
 
         let now = Date()
         let capturedSilenceStart = silenceStart
 
+        let capturedRawRms = rawRms
+
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
             self.audioLevel = normalizedLevel
+            self.rawAudioLevel = capturedRawRms
 
             if silent {
                 if self.silenceStart == nil {

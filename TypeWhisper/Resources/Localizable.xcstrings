@@ -403,6 +403,16 @@
         }
       }
     },
+    "Adjust so the red line sits above the background noise level. Sound below the line counts as silence." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "So einstellen, dass die rote Linie ueber dem Hintergrundrauschen liegt. Alles unter der Linie gilt als Stille."
+          }
+        }
+      }
+    },
     "Advanced" : {
       "localizations" : {
         "de" : {
@@ -2149,23 +2159,6 @@
         }
       }
     },
-    "noLLMProvider" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kein LLM-Anbieter konfiguriert. Richte Apple Intelligence oder einen API-Schlüssel in den Einstellungen ein."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No LLM provider configured. Set up Apple Intelligence or an API key in Settings."
-          }
-        }
-      }
-    },
     "No model loaded" : {
       "localizations" : {
         "de" : {
@@ -2255,6 +2248,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Keine URL-Muster"
+          }
+        }
+      }
+    },
+    "noLLMProvider" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein LLM-Anbieter konfiguriert. Richte Apple Intelligence oder einen API-Schlüssel in den Einstellungen ein."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No LLM provider configured. Set up Apple Intelligence or an API key in Settings."
           }
         }
       }
@@ -2475,6 +2485,16 @@
         }
       }
     },
+    "Pause on silence instead of stopping" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bei Stille pausieren statt stoppen"
+          }
+        }
+      }
+    },
     "Percentage of your current volume to use during recording. 0% mutes completely." : {
       "localizations" : {
         "de" : {
@@ -2552,56 +2572,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vorlage"
-          }
-        }
-      }
-    },
-    "Press a key…" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Taste drücken…"
-          }
-        }
-      }
-    },
-    "Press to start, press again to stop." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Drücken zum Starten, erneut drücken zum Stoppen."
-          }
-        }
-      }
-    },
-    "Priority" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Priorität"
-          }
-        }
-      }
-    },
-    "Profile name" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Profilname"
-          }
-        }
-      }
-    },
-    "Profiles" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Profile"
           }
         }
       }
@@ -2691,6 +2661,56 @@
         }
       }
     },
+    "Press a key…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Taste drücken…"
+          }
+        }
+      }
+    },
+    "Press to start, press again to stop." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drücken zum Starten, erneut drücken zum Stoppen."
+          }
+        }
+      }
+    },
+    "Priority" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Priorität"
+          }
+        }
+      }
+    },
+    "Profile name" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profilname"
+          }
+        }
+      }
+    },
+    "Profiles" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profile"
+          }
+        }
+      }
+    },
     "Prompt" : {
       "localizations" : {
         "de" : {
@@ -2733,6 +2753,7 @@
     },
     "PTT" : {
       "comment" : "An abbreviation for \"Push to Talk\".",
+      "extractionState" : "stale",
       "isCommentAutoGenerated" : true,
       "localizations" : {
         "de" : {
@@ -2831,6 +2852,7 @@
       }
     },
     "Recording" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3093,6 +3115,7 @@
       }
     },
     "Select prompt..." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3170,6 +3193,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hilfe anzeigen:"
+          }
+        }
+      }
+    },
+    "Silence Detection" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stille-Erkennung"
+          }
+        }
+      }
+    },
+    "Silence duration" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stille-Dauer"
+          }
+        }
+      }
+    },
+    "Silence threshold" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stille-Schwellwert"
           }
         }
       }
@@ -3579,6 +3632,7 @@
     },
     "TOG" : {
       "comment" : "An abbreviation for \"Toggle\".",
+      "extractionState" : "stale",
       "isCommentAutoGenerated" : true,
       "localizations" : {
         "de" : {
@@ -3908,6 +3962,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Wenn aktiviert, wird immer Cmd+V simuliert, auch wenn kein Textfeld erkannt wird. Nützlich für Terminal-Emulatoren."
+          }
+        }
+      }
+    },
+    "When enabled, recording pauses during silence and resumes automatically when you speak again. Only applies to toggle hotkey mode." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wenn aktiviert, pausiert die Aufnahme bei Stille und wird automatisch fortgesetzt, sobald Sie wieder sprechen. Gilt nur im Toggle-Hotkey-Modus."
           }
         }
       }

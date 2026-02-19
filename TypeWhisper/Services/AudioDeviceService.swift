@@ -28,6 +28,7 @@ final class AudioDeviceService: ObservableObject, @unchecked Sendable {
     @Published var disconnectedDeviceName: String?
     @Published var isPreviewActive: Bool = false
     @Published var previewAudioLevel: Float = 0
+    @Published var previewRawLevel: Float = 0
 
     var selectedDeviceID: AudioDeviceID? {
         guard let uid = selectedDeviceUID else { return nil }
@@ -103,6 +104,7 @@ final class AudioDeviceService: ObservableObject, @unchecked Sendable {
         previewEngine = nil
         isPreviewActive = false
         previewAudioLevel = 0
+        previewRawLevel = 0
     }
 
     private func processPreviewBuffer(_ buffer: AVAudioPCMBuffer) {
@@ -118,6 +120,7 @@ final class AudioDeviceService: ObservableObject, @unchecked Sendable {
         DispatchQueue.main.async { [weak self] in
             guard let self, self.isPreviewActive else { return }
             self.previewAudioLevel = level
+            self.previewRawLevel = rms
         }
     }
 
