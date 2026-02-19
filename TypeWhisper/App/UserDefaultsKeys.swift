@@ -11,11 +11,11 @@ enum UserDefaultsKeys {
     static let soundFeedbackEnabled = "soundFeedbackEnabled"
     static let overlayPosition = "overlayPosition"
 
-    // MARK: - Hotkey
-    static let hotkeyUseSingleKey = "hotkeyUseSingleKey"
-    static let singleKeyCode = "singleKeyCode"
-    static let singleKeyIsFn = "singleKeyIsFn"
-    static let singleKeyIsModifier = "singleKeyIsModifier"
+    // MARK: - Hotkey (JSON-encoded UnifiedHotkey per slot)
+    static let hybridHotkey = "hybridHotkey"
+    static let pttHotkey = "pttHotkey"
+    static let toggleHotkey = "toggleHotkey"
+    static let promptPaletteHotkey = "promptPaletteHotkey"
 
     // MARK: - Model / Engine
     static let selectedEngine = "selectedEngine"

@@ -1,5 +1,4 @@
 import SwiftUI
-import KeyboardShortcuts
 
 struct SetupWizardView: View {
     @ObservedObject private var dictation = DictationViewModel.shared
@@ -264,33 +263,48 @@ struct SetupWizardView: View {
                 .foregroundStyle(.secondary)
 
             VStack(alignment: .leading, spacing: 12) {
-                Picker(String(localized: "Mode"), selection: Binding(
-                    get: { dictation.singleKeyMode },
-                    set: { newValue in
-                        if !newValue {
-                            dictation.disableSingleKey()
-                        } else {
-                            dictation.singleKeyMode = true
+                HotkeyRecorderView(
+                    label: dictation.hybridHotkeyLabel,
+                    title: String(localized: "Hybrid"),
+                    onRecord: { hotkey in
+                        if let conflict = dictation.isHotkeyAssigned(hotkey, excluding: .hybrid) {
+                            dictation.clearHotkey(for: conflict)
                         }
-                    }
-                )) {
-                    Text(String(localized: "Key Combination")).tag(false)
-                    Text(String(localized: "Single Key")).tag(true)
-                }
-                .pickerStyle(.segmented)
+                        dictation.setHotkey(hotkey, for: .hybrid)
+                    },
+                    onClear: { dictation.clearHotkey(for: .hybrid) }
+                )
+                Text(String(localized: "Short press to toggle, hold to push-to-talk."))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
 
-                if dictation.singleKeyMode {
-                    SingleKeyRecorderView(
-                        label: dictation.singleKeyLabel,
-                        onRecord: { code, isFn in
-                            dictation.setSingleKey(code: code, isFn: isFn)
+                HotkeyRecorderView(
+                    label: dictation.pttHotkeyLabel,
+                    title: String(localized: "Push-to-Talk"),
+                    onRecord: { hotkey in
+                        if let conflict = dictation.isHotkeyAssigned(hotkey, excluding: .pushToTalk) {
+                            dictation.clearHotkey(for: conflict)
                         }
-                    )
-                } else {
-                    KeyboardShortcuts.Recorder(String(localized: "Dictation shortcut"), name: .toggleDictation)
-                }
+                        dictation.setHotkey(hotkey, for: .pushToTalk)
+                    },
+                    onClear: { dictation.clearHotkey(for: .pushToTalk) }
+                )
+                Text(String(localized: "Hold to record, release to stop."))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
 
-                Text(String(localized: "Quick press: toggle mode (press again to stop). Hold 1+ seconds: push-to-talk (release to stop)."))
+                HotkeyRecorderView(
+                    label: dictation.toggleHotkeyLabel,
+                    title: String(localized: "Toggle"),
+                    onRecord: { hotkey in
+                        if let conflict = dictation.isHotkeyAssigned(hotkey, excluding: .toggle) {
+                            dictation.clearHotkey(for: conflict)
+                        }
+                        dictation.setHotkey(hotkey, for: .toggle)
+                    },
+                    onClear: { dictation.clearHotkey(for: .toggle) }
+                )
+                Text(String(localized: "Press to start, press again to stop."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
