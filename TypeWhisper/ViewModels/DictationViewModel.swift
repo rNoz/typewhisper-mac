@@ -52,6 +52,9 @@ final class DictationViewModel: ObservableObject {
     @Published var toggleHotkeyLabel: String
     @Published var promptPaletteHotkeyLabel: String
     @Published var activeProfileName: String?
+    @Published var promptDisplayDuration: Double {
+        didSet { UserDefaults.standard.set(promptDisplayDuration, forKey: UserDefaultsKeys.promptDisplayDuration) }
+    }
     @Published var availablePromptActions: [PromptAction] = []
     @Published var selectedPromptIndex: Int = 0
     @Published var promptResultText: String = ""
@@ -160,6 +163,7 @@ final class DictationViewModel: ObservableObject {
         self.audioDuckingLevel = UserDefaults.standard.object(forKey: UserDefaultsKeys.audioDuckingLevel) as? Double ?? 0.2
         self.mediaPauseEnabled = UserDefaults.standard.bool(forKey: UserDefaultsKeys.mediaPauseEnabled)
         self.soundFeedbackEnabled = UserDefaults.standard.object(forKey: UserDefaultsKeys.soundFeedbackEnabled) as? Bool ?? true
+        self.promptDisplayDuration = UserDefaults.standard.object(forKey: UserDefaultsKeys.promptDisplayDuration) as? Double ?? 8.0
         self.hybridHotkeyLabel = Self.loadHotkeyLabel(for: .hybrid)
         self.pttHotkeyLabel = Self.loadHotkeyLabel(for: .pushToTalk)
         self.toggleHotkeyLabel = Self.loadHotkeyLabel(for: .toggle)
@@ -227,6 +231,11 @@ final class DictationViewModel: ObservableObject {
     }
 
     private func startRecording() {
+        // Dismiss prompt selection if active
+        if case .promptSelection = state {
+            resetDictationState()
+        }
+
         guard canDictate else {
             showError("No model loaded. Please download a model first.")
             return
@@ -543,8 +552,10 @@ final class DictationViewModel: ObservableObject {
 
     // MARK: - Prompt Selection
 
-    func enterPromptSelection(with text: String) {
-        let actions = promptActionService.getEnabledActions()
+    func enterPromptSelection(with text: String, autoDismiss: Bool = true) {
+        let actions = promptProcessingService.isCurrentProviderReady
+            ? promptActionService.getEnabledActions()
+            : []
         guard !actions.isEmpty else {
             // No prompts configured, stay in clipboard-only mode
             state = .inserting
@@ -562,12 +573,12 @@ final class DictationViewModel: ObservableObject {
         pasteboard.setString(text, forType: .string)
 
         availablePromptActions = actions
-        selectedPromptIndex = 0  // 0 = "Copy to Clipboard", 1+ = prompt actions
+        selectedPromptIndex = -1  // No pre-selection, user must choose
         state = .promptSelection(text)
 
         promptDismissTask?.cancel()
         promptDismissTask = Task {
-            try? await Task.sleep(for: .seconds(30))
+            try? await Task.sleep(for: .seconds(promptDisplayDuration))
             guard !Task.isCancelled else { return }
             if case .promptSelection = state {
                 dismissPromptSelection()
@@ -601,10 +612,9 @@ final class DictationViewModel: ObservableObject {
 
                 soundService.play(.transcriptionSuccess, enabled: soundFeedbackEnabled)
 
-                // Stay in promptProcessing to show result text in the Notch.
-                // Auto-dismiss after 8 seconds or manual dismiss via Esc.
+                // Show result briefly, then auto-dismiss
                 promptDismissTask = Task {
-                    try? await Task.sleep(for: .seconds(8))
+                    try? await Task.sleep(for: .seconds(promptDisplayDuration))
                     guard !Task.isCancelled else { return }
                     if case .promptProcessing = state {
                         resetDictationState()
@@ -635,15 +645,13 @@ final class DictationViewModel: ObservableObject {
     }
 
     func confirmPromptSelection() {
+        guard selectedPromptIndex >= 0 else {
+            resetDictationState()  // Enter with no selection = dismiss
+            return
+        }
         if selectedPromptIndex == 0 {
-            // "Copy to Clipboard" - text is already there, just dismiss
-            soundService.play(.transcriptionSuccess, enabled: soundFeedbackEnabled)
-            state = .inserting
-            Task {
-                try? await Task.sleep(for: .seconds(1.5))
-                guard !Task.isCancelled else { return }
-                resetDictationState()
-            }
+            // "Copy to Clipboard" - text is already in clipboard, just dismiss
+            resetDictationState()
         } else {
             let actionIndex = selectedPromptIndex - 1
             guard actionIndex >= 0, actionIndex < availablePromptActions.count else { return }
@@ -657,7 +665,18 @@ final class DictationViewModel: ObservableObject {
     }
 
     func triggerStandalonePromptSelection() {
+        // If already showing prompt selection, dismiss it (toggle behavior)
+        if case .promptSelection = state {
+            dismissPromptSelection()
+            return
+        }
         guard state == .idle else { return }
+
+        guard promptProcessingService.isCurrentProviderReady else {
+            soundService.play(.error, enabled: soundFeedbackEnabled)
+            showError(String(localized: "noLLMProvider"))
+            return
+        }
 
         // Try to get selected text, fall back to clipboard
         let text: String
@@ -669,7 +688,7 @@ final class DictationViewModel: ObservableObject {
             return // nothing to process
         }
 
-        enterPromptSelection(with: text)
+        enterPromptSelection(with: text, autoDismiss: false)
     }
 
     private func showError(_ message: String) {

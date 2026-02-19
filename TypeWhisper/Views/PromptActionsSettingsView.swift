@@ -275,7 +275,7 @@ private struct PromptActionEditorSheet: View {
         "checkmark.circle", "envelope", "list.bullet", "scissors",
         "lightbulb", "pencil", "doc.text", "text.quote",
         "wand.and.stars", "arrow.triangle.2.circlepath", "text.magnifyingglass",
-        "character.textbox"
+        "character.textbox", "checklist", "arrowshape.turn.up.left"
     ]
 
     var body: some View {

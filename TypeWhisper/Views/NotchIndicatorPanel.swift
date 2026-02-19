@@ -36,7 +36,8 @@ class NotchIndicatorPanel: NSPanel {
 
     private let notchGeometry = NotchGeometry()
     private var cancellables = Set<AnyCancellable>()
-    private var keyMonitor: Any?
+    private var eventTap: CFMachPort?
+    private var runLoopSource: CFRunLoopSource?
 
     init() {
         super.init(
@@ -120,57 +121,79 @@ class NotchIndicatorPanel: NSPanel {
         }
     }
 
-    // MARK: - Global key monitor (captures keys without stealing focus)
+    // MARK: - CGEvent tap (intercepts AND consumes keys globally)
 
     private func installKeyMonitor() {
-        guard keyMonitor == nil else { return }
-        keyMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            self?.handlePromptKey(event)
-        }
+        guard eventTap == nil else { return }
+
+        let mask: CGEventMask = (1 << CGEventType.keyDown.rawValue)
+        guard let tap = CGEvent.tapCreate(
+            tap: .cgSessionEventTap,
+            place: .headInsertEventTap,
+            options: .defaultTap,
+            eventsOfInterest: mask,
+            callback: { _, _, event, _ -> Unmanaged<CGEvent>? in
+                let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
+                let vm = DictationViewModel.shared
+
+                // Esc/Enter dismiss promptProcessing (result view)
+                if case .promptProcessing = vm.state {
+                    if keyCode == 53 || keyCode == 36 {
+                        DispatchQueue.main.async { vm.dismissPromptSelection() }
+                        return nil
+                    }
+                    return Unmanaged.passUnretained(event)
+                }
+
+                // Esc dismisses promptSelection
+                if keyCode == 53 {
+                    DispatchQueue.main.async { vm.dismissPromptSelection() }
+                    return nil
+                }
+
+                // Other keys only during selection
+                guard case .promptSelection = vm.state else {
+                    return Unmanaged.passUnretained(event)
+                }
+
+                switch keyCode {
+                case 36: // Enter/Return
+                    DispatchQueue.main.async { vm.confirmPromptSelection() }
+                    return nil
+                case 126: // Arrow Up
+                    DispatchQueue.main.async { vm.movePromptSelection(by: -1) }
+                    return nil
+                case 125: // Arrow Down
+                    DispatchQueue.main.async { vm.movePromptSelection(by: 1) }
+                    return nil
+                default:
+                    // Number keys 1-9 (key codes are non-contiguous)
+                    let digitMap: [Int64: Int] = [18:1, 19:2, 20:3, 21:4, 23:5, 22:6, 26:7, 28:8, 25:9]
+                    if let digit = digitMap[keyCode] {
+                        DispatchQueue.main.async { vm.selectPromptByIndex(digit - 1) }
+                        return nil
+                    }
+                }
+
+                return Unmanaged.passUnretained(event)
+            },
+            userInfo: nil
+        ) else { return }
+
+        eventTap = tap
+        runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
+        CFRunLoopAddSource(CFRunLoopGetMain(), runLoopSource, .commonModes)
     }
 
     private func removeKeyMonitor() {
-        if let monitor = keyMonitor {
-            NSEvent.removeMonitor(monitor)
-            keyMonitor = nil
+        if let source = runLoopSource {
+            CFRunLoopRemoveSource(CFRunLoopGetMain(), source, .commonModes)
+            runLoopSource = nil
         }
-    }
-
-    private func handlePromptKey(_ event: NSEvent) {
-        let vm = DictationViewModel.shared
-
-        // Esc dismisses both promptSelection and promptProcessing (result view)
-        if event.keyCode == 53 {
-            vm.dismissPromptSelection()
-            return
+        if let tap = eventTap {
+            CFMachPortInvalidate(tap)
+            eventTap = nil
         }
-
-        // Other keys only work during selection
-        guard case .promptSelection = vm.state else { return }
-
-        switch event.keyCode {
-        case 36: // Enter/Return
-            vm.confirmPromptSelection()
-        case 126: // Arrow Up
-            vm.movePromptSelection(by: -1)
-        case 125: // Arrow Down
-            vm.movePromptSelection(by: 1)
-        default:
-            if let characters = event.charactersIgnoringModifiers,
-               let digit = characters.first?.wholeNumberValue,
-               digit >= 1, digit <= 9 {
-                vm.selectPromptByIndex(digit - 1)
-            }
-        }
-    }
-
-    override func keyDown(with event: NSEvent) {
-        let vm = DictationViewModel.shared
-        guard case .promptSelection = vm.state else {
-            super.keyDown(with: event)
-            return
-        }
-        handlePromptKey(event)
     }
 
     // MARK: - Notch geometry

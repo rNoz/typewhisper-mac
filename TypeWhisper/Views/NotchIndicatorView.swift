@@ -13,6 +13,8 @@ struct NotchIndicatorView: View {
     @State private var dotPulse = false
 
     private let extensionWidth: CGFloat = 60
+    /// Consistent horizontal padding for all expanded content (lists, results, text).
+    private let contentPadding: CGFloat = 28
 
     private var closedWidth: CGFloat {
         geometry.hasNotch ? geometry.notchWidth + 2 * extensionWidth : 200
@@ -293,16 +295,16 @@ struct NotchIndicatorView: View {
                 .font(.system(size: 12))
                 .foregroundStyle(.white.opacity(0.5))
                 .lineLimit(3)
-                .padding(.horizontal, 24)
-                .padding(.top, 16)
-                .padding(.bottom, 12)
+                .padding(.horizontal, contentPadding)
+                .padding(.top, 20)
+                .padding(.bottom, 16)
 
             Rectangle()
                 .fill(.white.opacity(0.08))
                 .frame(height: 1)
 
             // Action list: clipboard option + prompt actions
-            VStack(spacing: 2) {
+            VStack(spacing: 4) {
                 // "Copy to Clipboard" as first option (index 0)
                 clipboardRow
 
@@ -310,7 +312,7 @@ struct NotchIndicatorView: View {
                     promptActionRow(action: action, index: index + 1) // offset by 1
                 }
             }
-            .padding(.vertical, 8)
+            .padding(.vertical, 10)
 
             Rectangle()
                 .fill(.white.opacity(0.08))
@@ -344,12 +346,12 @@ struct NotchIndicatorView: View {
                 .foregroundStyle(.white.opacity(0.25))
         }
         .foregroundStyle(.white.opacity(isSelected ? 1.0 : 0.65))
-        .padding(.horizontal, 24)
-        .padding(.vertical, 8)
+        .padding(.horizontal, contentPadding)
+        .padding(.vertical, 10)
         .background(
             RoundedRectangle(cornerRadius: 8)
                 .fill(isSelected ? Color.white.opacity(0.1) : Color.clear)
-                .padding(.horizontal, 8)
+                .padding(.horizontal, 12)
         )
         .contentShape(Rectangle())
         .onHover { hovering in
@@ -382,12 +384,12 @@ struct NotchIndicatorView: View {
             }
         }
         .foregroundStyle(.white.opacity(isSelected ? 1.0 : 0.65))
-        .padding(.horizontal, 24)
-        .padding(.vertical, 8)
+        .padding(.horizontal, contentPadding)
+        .padding(.vertical, 10)
         .background(
             RoundedRectangle(cornerRadius: 8)
                 .fill(isSelected ? Color.white.opacity(0.1) : Color.clear)
-                .padding(.horizontal, 8)
+                .padding(.horizontal, 12)
         )
         .contentShape(Rectangle())
         .onHover { hovering in
@@ -415,7 +417,7 @@ struct NotchIndicatorView: View {
                         .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(.white.opacity(0.7))
                 }
-                .padding(.horizontal, 24)
+                .padding(.horizontal, contentPadding)
                 .padding(.top, 16)
                 .padding(.bottom, 16)
             } else {
@@ -432,17 +434,17 @@ struct NotchIndicatorView: View {
                         .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(.white.opacity(0.25))
                 }
-                .padding(.horizontal, 24)
-                .padding(.top, 14)
+                .padding(.horizontal, contentPadding)
+                .padding(.top, 12)
 
                 Text(viewModel.promptResultText)
-                    .font(.system(size: 12))
+                    .font(.system(size: 13))
                     .foregroundStyle(.white.opacity(0.85))
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .lineLimit(12)
-                    .padding(.horizontal, 24)
-                    .padding(.top, 8)
-                    .padding(.bottom, 18)
+                    .padding(.horizontal, contentPadding)
+                    .padding(.top, 12)
+                    .padding(.bottom, 24)
             }
         }
     }

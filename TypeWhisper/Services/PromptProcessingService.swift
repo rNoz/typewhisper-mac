@@ -84,10 +84,11 @@ class PromptProcessingService: ObservableObject {
     func process(prompt: String, text: String, providerOverride: LLMProviderType? = nil, cloudModelOverride: String? = nil) async throws -> String {
         let effectiveType = providerOverride ?? selectedProviderType
 
-        // For cloud overrides with a custom model, create a fresh provider
         let provider: LLMProvider
-        if let config = effectiveType.cloudConfig, let modelOverride = cloudModelOverride, !modelOverride.isEmpty {
-            provider = CloudLLMProvider(config: config, model: modelOverride)
+        if let config = effectiveType.cloudConfig {
+            // Always create a fresh cloud provider with the current model selection
+            let model = cloudModelOverride ?? selectedCloudModel
+            provider = CloudLLMProvider(config: config, model: model.isEmpty ? config.defaultModel : model)
         } else if let existing = providers[effectiveType] {
             provider = existing
         } else {

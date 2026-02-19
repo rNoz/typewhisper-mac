@@ -60,9 +60,16 @@ final class CloudLLMProvider: LLMProvider, @unchecked Sendable {
         case 429:
             throw LLMError.providerError("Rate limit exceeded. Please wait and try again.")
         default:
-            let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
-            logger.error("Cloud LLM error HTTP \(httpResponse.statusCode): \(errorMessage)")
-            throw LLMError.providerError("HTTP \(httpResponse.statusCode)")
+            let errorBody = String(data: data, encoding: .utf8) ?? ""
+            logger.error("Cloud LLM error HTTP \(httpResponse.statusCode): \(errorBody)")
+            // Extract human-readable message from JSON error response
+            var displayMessage = "HTTP \(httpResponse.statusCode)"
+            if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let error = json["error"] as? [String: Any],
+               let message = error["message"] as? String {
+                displayMessage = message
+            }
+            throw LLMError.providerError(displayMessage)
         }
 
         guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
