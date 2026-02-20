@@ -378,8 +378,13 @@ final class DictationViewModel: ObservableObject {
     }
 
     private var effectivePromptAction: PromptAction? {
-        guard let actionId = matchedProfile?.promptActionId else { return nil }
-        return promptActionService.action(byId: actionId)
+        if let actionId = matchedProfile?.promptActionId {
+            return promptActionService.action(byId: actionId)
+        }
+        if let globalId = settingsViewModel.defaultPromptActionId {
+            return promptActionService.action(byId: globalId)
+        }
+        return nil
     }
 
     private func stopDictation() {

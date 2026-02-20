@@ -14,6 +14,7 @@ struct GeneralSettingsView: View {
     @ObservedObject private var modelManager = ModelManagerViewModel.shared
     @ObservedObject private var settings = SettingsViewModel.shared
     @ObservedObject private var audioDevice = ServiceContainer.shared.audioDeviceService
+    @ObservedObject private var promptActions = PromptActionsViewModel.shared
 
     var body: some View {
         Form {
@@ -64,6 +65,20 @@ struct GeneralSettingsView: View {
                 }
 
                 Text(String(localized: "The model used for transcription unless overridden by a profile."))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section(String(localized: "Default Prompt")) {
+                Picker(String(localized: "Prompt"), selection: $settings.defaultPromptActionId) {
+                    Text(String(localized: "None")).tag(nil as String?)
+                    Divider()
+                    ForEach(promptActions.promptActions.filter(\.isEnabled)) { action in
+                        Label(action.name, systemImage: action.icon).tag(action.id.uuidString as String?)
+                    }
+                }
+
+                Text(String(localized: "When set, all dictations will be processed by this prompt. Profile-specific prompts take priority. Replaces translation when active."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

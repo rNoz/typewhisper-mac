@@ -31,6 +31,11 @@ final class SettingsViewModel: ObservableObject {
             UserDefaults.standard.set(translationTargetLanguage, forKey: UserDefaultsKeys.translationTargetLanguage)
         }
     }
+    @Published var defaultPromptActionId: String? {
+        didSet {
+            UserDefaults.standard.set(defaultPromptActionId, forKey: UserDefaultsKeys.defaultPromptActionId)
+        }
+    }
 
     private let modelManager: ModelManagerService
     private var cancellables = Set<AnyCancellable>()
@@ -42,6 +47,7 @@ final class SettingsViewModel: ObservableObject {
             .flatMap { TranscriptionTask(rawValue: $0) } ?? .transcribe
         self.translationEnabled = UserDefaults.standard.bool(forKey: UserDefaultsKeys.translationEnabled)
         self.translationTargetLanguage = UserDefaults.standard.string(forKey: UserDefaultsKeys.translationTargetLanguage) ?? "en"
+        self.defaultPromptActionId = UserDefaults.standard.string(forKey: UserDefaultsKeys.defaultPromptActionId)
     }
 
     var availableLanguages: [(code: String, name: String)] {
