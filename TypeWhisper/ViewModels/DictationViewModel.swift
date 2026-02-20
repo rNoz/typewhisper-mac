@@ -385,7 +385,8 @@ final class DictationViewModel: ObservableObject {
     private func stopDictation() {
         guard state == .recording || state == .paused else { return }
 
-        // Capture trailing silence duration before stopping (for trimming)
+        // Capture state before stopping - pause already trimmed via trimTrailingSilence()
+        let wasPaused = (state == .paused)
         let trailingSilence = audioRecordingService.silenceDuration
         audioDuckingService.restoreAudio()
         mediaPlaybackService.resumePlayback()
@@ -394,13 +395,17 @@ final class DictationViewModel: ObservableObject {
         stopRecordingTimer()
         var samples = audioRecordingService.stopRecording()
 
-        // Always trim trailing silence to prevent Whisper hallucination
-        if trailingSilence > 0.3 {
+        // Only trim if we weren't paused (pause already trimmed via trimTrailingSilence)
+        if !wasPaused && trailingSilence > 0.3 {
             let trimCount = Int(trailingSilence * AudioRecordingService.targetSampleRate)
             if samples.count > trimCount {
                 samples = Array(samples.dropLast(trimCount))
             }
         }
+
+        // Add silence padding so Whisper can properly finish decoding the last tokens
+        let padCount = Int(0.3 * AudioRecordingService.targetSampleRate)
+        samples.append(contentsOf: [Float](repeating: 0, count: padCount))
 
         guard !samples.isEmpty else {
             resetDictationState()

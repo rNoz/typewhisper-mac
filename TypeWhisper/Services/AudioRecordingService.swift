@@ -211,6 +211,10 @@ final class AudioRecordingService: ObservableObject, @unchecked Sendable {
         audioEngine?.inputNode.removeTap(onBus: 0)
         audioEngine?.stop()
         audioEngine = nil
+
+        // Flush pending audio processing before grabbing the buffer
+        processingQueue.sync { }
+
         isRecording = false
         isPaused = false
         audioLevel = 0
