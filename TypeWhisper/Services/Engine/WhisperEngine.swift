@@ -169,7 +169,7 @@ final class WhisperEngine: TranscriptionEngine, @unchecked Sendable {
             detectedLanguage: detectedLanguage,
             duration: audioDuration,
             processingTime: processingTime,
-            engineUsed: .whisper,
+            engineUsed: EngineType.whisper.rawValue,
             segments: segments
         )
     }
@@ -230,7 +230,7 @@ final class WhisperEngine: TranscriptionEngine, @unchecked Sendable {
             detectedLanguage: detectedLanguage,
             duration: audioDuration,
             processingTime: processingTime,
-            engineUsed: .whisper,
+            engineUsed: EngineType.whisper.rawValue,
             segments: segments
         )
     }

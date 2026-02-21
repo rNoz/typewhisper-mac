@@ -70,7 +70,7 @@ final class ParakeetEngine: TranscriptionEngine, @unchecked Sendable {
             detectedLanguage: nil,
             duration: audioDuration,
             processingTime: processingTime,
-            engineUsed: .parakeet,
+            engineUsed: EngineType.parakeet.rawValue,
             segments: segments
         )
     }

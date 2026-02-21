@@ -11,7 +11,7 @@ struct TranscriptionResult {
     let detectedLanguage: String?
     let duration: TimeInterval
     let processingTime: TimeInterval
-    let engineUsed: EngineType
+    let engineUsed: String
     let segments: [TranscriptionSegment]
 
     var realTimeFactor: Double {

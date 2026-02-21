@@ -258,21 +258,22 @@ private struct ProfileEditorSheet: View {
                             Text(engine.displayName).tag(engine.rawValue as String?)
                         }
 
-                        let configuredCloud = EngineType.cloudCases.filter {
-                            ModelManagerViewModel.shared.isCloudProviderConfigured($0)
-                        }
-                        if !configuredCloud.isEmpty {
+                        let configuredPlugins = ModelManagerViewModel.shared.configuredPluginEngines
+                        if !configuredPlugins.isEmpty {
                             Divider()
-                            ForEach(configuredCloud) { engine in
-                                Text(engine.displayName).tag(engine.rawValue as String?)
+                            ForEach(configuredPlugins, id: \.providerId) { plugin in
+                                Text(plugin.providerDisplayName).tag(plugin.providerId as String?)
                             }
                         }
                     }
 
-                    if let override = viewModel.editorEngineOverride,
-                       let engine = EngineType(rawValue: override) {
-                        if engine.isCloud {
-                            let models = ModelManagerViewModel.shared.cloudModels(for: engine)
+                    if let override = viewModel.editorEngineOverride {
+                        if EngineType(rawValue: override) != nil {
+                            Text(String(localized: "Using a different engine per profile requires both models to be loaded, which increases memory usage."))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        } else if let plugin = PluginManager.shared.transcriptionEngine(for: override) {
+                            let models = plugin.transcriptionModels
                             if models.count > 1 {
                                 Picker(String(localized: "Model"), selection: $viewModel.editorCloudModelOverride) {
                                     Text(String(localized: "Default")).tag(nil as String?)
@@ -284,10 +285,6 @@ private struct ProfileEditorSheet: View {
                             }
 
                             Text(String(localized: "Cloud transcription requires an internet connection."))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        } else {
-                            Text(String(localized: "Using a different engine per profile requires both models to be loaded, which increases memory usage."))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }

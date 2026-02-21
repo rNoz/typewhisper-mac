@@ -156,7 +156,7 @@ final class SpeechAnalyzerEngine: TranscriptionEngine, @unchecked Sendable {
             detectedLanguage: locale.language.languageCode?.identifier,
             duration: audioDuration,
             processingTime: processingTime,
-            engineUsed: .speechAnalyzer,
+            engineUsed: EngineType.speechAnalyzer.rawValue,
             segments: []
         )
     }
@@ -216,7 +216,7 @@ final class SpeechAnalyzerEngine: TranscriptionEngine, @unchecked Sendable {
             detectedLanguage: locale.language.languageCode?.identifier,
             duration: audioDuration,
             processingTime: processingTime,
-            engineUsed: .speechAnalyzer,
+            engineUsed: EngineType.speechAnalyzer.rawValue,
             segments: []
         )
     }

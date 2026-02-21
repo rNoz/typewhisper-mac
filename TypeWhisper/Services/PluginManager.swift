@@ -51,6 +51,16 @@ final class PluginManager: ObservableObject {
             .compactMap { $0.instance as? LLMProviderPlugin }
     }
 
+    var transcriptionEngines: [TranscriptionEnginePlugin] {
+        loadedPlugins
+            .filter { $0.isEnabled }
+            .compactMap { $0.instance as? TranscriptionEnginePlugin }
+    }
+
+    func transcriptionEngine(for providerId: String) -> TranscriptionEnginePlugin? {
+        transcriptionEngines.first { $0.providerId == providerId }
+    }
+
     init() {
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
         self.pluginsDirectory = appSupport

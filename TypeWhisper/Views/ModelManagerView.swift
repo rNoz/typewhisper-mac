@@ -1,7 +1,9 @@
 import SwiftUI
+import TypeWhisperPluginSDK
 
 struct ModelManagerView: View {
     @ObservedObject private var viewModel = ModelManagerViewModel.shared
+    @ObservedObject private var pluginManager = PluginManager.shared
     @State private var selectedSection: ModelSection = .localModels
 
     private enum ModelSection: String, CaseIterable {
@@ -9,15 +11,22 @@ struct ModelManagerView: View {
         case cloudProvider
     }
 
+    private var hasPluginProviders: Bool {
+        !pluginManager.loadedPlugins.isEmpty &&
+        pluginManager.loadedPlugins.contains { $0.instance is TranscriptionEnginePlugin }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            Picker(String(localized: "Section"), selection: $selectedSection) {
-                Text(String(localized: "Local Models")).tag(ModelSection.localModels)
-                Text(String(localized: "Cloud Provider")).tag(ModelSection.cloudProvider)
+            if hasPluginProviders {
+                Picker(String(localized: "Section"), selection: $selectedSection) {
+                    Text(String(localized: "Local Models")).tag(ModelSection.localModels)
+                    Text(String(localized: "Cloud Provider")).tag(ModelSection.cloudProvider)
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .padding()
             }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .padding()
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
@@ -61,17 +70,22 @@ struct ModelManagerView: View {
                         }
 
                     case .cloudProvider:
-                        Text(String(localized: "Configure cloud transcription providers. An API key is required for each provider."))
-                            .font(.callout)
-                            .foregroundStyle(.secondary)
+                        let engines = viewModel.pluginTranscriptionEngines
+                        if engines.isEmpty {
+                            ContentUnavailableView {
+                                Label(String(localized: "No Cloud Providers"), systemImage: "cloud")
+                            } description: {
+                                Text(String(localized: "Install transcription plugins to add cloud providers like Groq or OpenAI."))
+                            }
+                        } else {
+                            Text(String(localized: "Cloud transcription providers are managed through plugins. Configure API keys in the plugin settings."))
+                                .font(.callout)
+                                .foregroundStyle(.secondary)
 
-                        ForEach(EngineType.cloudCases) { provider in
-                            CloudProviderSection(provider: provider, viewModel: viewModel)
+                            ForEach(engines, id: \.providerId) { engine in
+                                PluginProviderSection(engine: engine, viewModel: viewModel)
+                            }
                         }
-
-                        Text(String(localized: "API keys are stored securely in the Keychain"))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
                     }
                 }
                 .padding()
@@ -88,9 +102,100 @@ struct ModelManagerView: View {
             String(localized: "Parakeet - 25 European languages, extremely fast on Apple Silicon")
         case .speechAnalyzer:
             String(localized: "Apple Speech - system-managed models, streaming support, ~40 languages")
-        case .groq, .openai:
-            ""
         }
+    }
+}
+
+// MARK: - Plugin Provider Section
+
+struct PluginProviderSection: View {
+    let engine: TranscriptionEnginePlugin
+    @ObservedObject var viewModel: ModelManagerViewModel
+
+    private var isActive: Bool {
+        if let selectedId = viewModel.selectedModelId,
+           CloudProvider.isCloudModel(selectedId) {
+            let (providerId, _) = CloudProvider.parse(selectedId)
+            return providerId == engine.providerId
+        }
+        return false
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text(engine.providerDisplayName)
+                    .font(.body.weight(.medium))
+
+                if isActive {
+                    Text(String(localized: "Active"))
+                        .font(.caption2.weight(.semibold))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(.green.opacity(0.15), in: Capsule())
+                        .foregroundStyle(.green)
+                }
+
+                Spacer()
+
+                if engine.isConfigured {
+                    HStack(spacing: 4) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                        Text(String(localized: "Configured"))
+                            .font(.caption)
+                            .foregroundStyle(.green)
+                    }
+                } else {
+                    HStack(spacing: 4) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.orange)
+                        Text(String(localized: "Not Configured"))
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                    }
+                }
+            }
+
+            if !engine.isConfigured {
+                Text(String(localized: "Configure this provider in Settings > Integrations."))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                // Model list
+                let models = engine.transcriptionModels
+                let selectedModelId = viewModel.selectedPluginModelId(for: engine.providerId)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(String(localized: "Available Models"))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    ForEach(models, id: \.id) { model in
+                        HStack(spacing: 6) {
+                            Text(model.displayName)
+                                .font(.callout)
+
+                            Spacer()
+
+                            if model.id == selectedModelId {
+                                Image(systemName: "checkmark")
+                                    .foregroundStyle(.blue)
+                                    .font(.caption)
+                            }
+
+                            Button(String(localized: "Select")) {
+                                viewModel.selectPluginModel(model.id, providerId: engine.providerId)
+                            }
+                            .buttonStyle(.bordered)
+                            .controlSize(.mini)
+                        }
+                    }
+                }
+            }
+        }
+        .padding(12)
+        .background(RoundedRectangle(cornerRadius: 8).fill(.quaternary))
     }
 }
 

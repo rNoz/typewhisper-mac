@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import TypeWhisperPluginSDK
 
 @MainActor
 final class ModelManagerViewModel: ObservableObject {
@@ -22,19 +23,12 @@ final class ModelManagerViewModel: ObservableObject {
     init(modelManager: ModelManagerService) {
         self.modelManager = modelManager
         self.selectedModelId = modelManager.selectedModelId
-        if modelManager.selectedEngine.isCloud {
-            let fallback = EngineType.availableCases.first ?? .whisper
-            self.selectedEngine = fallback
-            self.models = ModelInfo.models(for: fallback)
-        } else {
-            self.selectedEngine = modelManager.selectedEngine
-            self.models = ModelInfo.models(for: modelManager.selectedEngine)
-        }
+        self.selectedEngine = modelManager.selectedEngine
+        self.models = ModelInfo.models(for: modelManager.selectedEngine)
 
         modelManager.$selectedEngine
             .dropFirst()
             .sink { [weak self] engine in
-                if engine.isCloud { return }
                 DispatchQueue.main.async {
                     self?.selectedEngine = engine
                     self?.models = ModelInfo.models(for: engine)
@@ -94,64 +88,53 @@ final class ModelManagerViewModel: ObservableObject {
 
     var activeModelName: String? {
         guard let modelId = selectedModelId else { return nil }
+        if CloudProvider.isCloudModel(modelId) {
+            let (providerId, pluginModelId) = CloudProvider.parse(modelId)
+            if let plugin = PluginManager.shared.transcriptionEngine(for: providerId),
+               let model = plugin.transcriptionModels.first(where: { $0.id == pluginModelId }) {
+                return model.displayName
+            }
+        }
         return ModelInfo.allModels.first { $0.id == modelId }?.displayName
     }
 
     var activeEngineName: String? {
-        guard let modelId = selectedModelId,
-              let model = ModelInfo.allModels.first(where: { $0.id == modelId }) else { return nil }
-        return model.engineType.displayName
-    }
-
-    // MARK: - Cloud Provider
-
-    func setApiKey(_ key: String, for provider: EngineType) {
-        modelManager.configureCloudProvider(provider, apiKey: key)
-    }
-
-    func removeApiKey(for provider: EngineType) {
-        modelManager.removeCloudProvider(provider)
-    }
-
-    func isCloudProviderConfigured(_ provider: EngineType) -> Bool {
-        modelManager.cloudEngines.first { $0.engineType == provider }?.isConfigured ?? false
-    }
-
-    func apiKeyForProvider(_ provider: EngineType) -> String? {
-        modelManager.cloudEngines.first { $0.engineType == provider }?.apiKey
-    }
-
-    func selectCloudModel(_ modelId: String, provider: EngineType) {
-        let fullId = CloudProvider.fullId(provider: provider.rawValue, model: modelId)
-        modelManager.selectEngine(provider)
-        modelManager.selectModel(fullId)
-    }
-
-    func selectedCloudModelId(for provider: EngineType) -> String? {
-        // First check if this provider is the globally active one
-        if let selectedId = modelManager.selectedModelId,
-           CloudProvider.isCloudModel(selectedId) {
-            let (providerStr, model) = CloudProvider.parse(selectedId)
-            if providerStr == provider.rawValue {
-                return model
+        guard let modelId = selectedModelId else { return nil }
+        if CloudProvider.isCloudModel(modelId) {
+            let (providerId, _) = CloudProvider.parse(modelId)
+            if let plugin = PluginManager.shared.transcriptionEngine(for: providerId) {
+                return plugin.providerDisplayName
             }
         }
-        // Fallback: check the engine's own selected model
-        if let cloudEngine = modelManager.cloudEngines.first(where: { $0.engineType == provider }),
-           let selected = cloudEngine.selectedModel {
-            return selected.id
+        if let model = ModelInfo.allModels.first(where: { $0.id == modelId }) {
+            return model.engineType.displayName
         }
         return nil
     }
 
-    func validateApiKey(_ key: String, for provider: EngineType) async -> Bool {
-        guard let cloudEngine = modelManager.cloudEngines.first(where: { $0.engineType == provider }) else {
-            return false
-        }
-        return await cloudEngine.validateApiKey(key)
+    // MARK: - Plugin Transcription Engines
+
+    var pluginTranscriptionEngines: [TranscriptionEnginePlugin] {
+        PluginManager.shared.transcriptionEngines
     }
 
-    func cloudModels(for provider: EngineType) -> [CloudModelInfo] {
-        modelManager.cloudEngines.first { $0.engineType == provider }?.transcriptionModels ?? []
+    var configuredPluginEngines: [TranscriptionEnginePlugin] {
+        pluginTranscriptionEngines.filter { $0.isConfigured }
+    }
+
+    func selectPluginModel(_ modelId: String, providerId: String) {
+        let fullId = CloudProvider.fullId(provider: providerId, model: modelId)
+        modelManager.selectModel(fullId)
+    }
+
+    func selectedPluginModelId(for providerId: String) -> String? {
+        if let selectedId = modelManager.selectedModelId,
+           CloudProvider.isCloudModel(selectedId) {
+            let (provider, model) = CloudProvider.parse(selectedId)
+            if provider == providerId {
+                return model
+            }
+        }
+        return PluginManager.shared.transcriptionEngine(for: providerId)?.selectedModelId
     }
 }

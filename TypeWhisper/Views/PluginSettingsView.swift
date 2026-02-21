@@ -84,8 +84,28 @@ private struct PluginRow: View {
         }
         .sheet(isPresented: $showSettings) {
             if let view = plugin.instance.settingsView {
-                view
-                    .frame(minWidth: 500, minHeight: 400)
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack {
+                        Text(plugin.manifest.name)
+                            .font(.headline)
+                        Spacer()
+                        Button {
+                            showSettings = false
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(.secondary)
+                                .font(.title2)
+                        }
+                        .buttonStyle(.borderless)
+                    }
+                    .padding()
+
+                    Divider()
+
+                    view
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                }
+                .frame(minWidth: 500, minHeight: 400)
             }
         }
     }

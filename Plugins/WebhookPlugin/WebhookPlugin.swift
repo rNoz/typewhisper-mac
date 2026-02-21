@@ -18,7 +18,7 @@ import TypeWhisperPluginSDK
 // MARK: - Plugin Entry Point
 
 @objc(WebhookPlugin)
-final class WebhookPlugin: NSObject, TypeWhisperPlugin {
+final class WebhookPlugin: NSObject, TypeWhisperPlugin, @unchecked Sendable {
     static let pluginId = "com.typewhisper.webhook"
     static let pluginName = "Webhook Notifications"
 

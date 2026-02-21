@@ -4,8 +4,6 @@ enum EngineType: String, CaseIterable, Identifiable, Codable {
     case whisper
     case parakeet
     case speechAnalyzer
-    case groq
-    case openai
 
     var id: String { rawValue }
 
@@ -14,8 +12,6 @@ enum EngineType: String, CaseIterable, Identifiable, Codable {
         case .whisper: "WhisperKit"
         case .parakeet: "Parakeet (FluidAudio)"
         case .speechAnalyzer: String(localized: "Apple Speech")
-        case .groq: "Groq"
-        case .openai: "OpenAI"
         }
     }
 
@@ -24,7 +20,6 @@ enum EngineType: String, CaseIterable, Identifiable, Codable {
         case .whisper: true
         case .parakeet: false
         case .speechAnalyzer: true
-        case .groq, .openai: false
         }
     }
 
@@ -33,14 +28,6 @@ enum EngineType: String, CaseIterable, Identifiable, Codable {
         case .whisper: true
         case .parakeet: false
         case .speechAnalyzer: false
-        case .groq, .openai: true
-        }
-    }
-
-    var isCloud: Bool {
-        switch self {
-        case .groq, .openai: true
-        default: false
         }
     }
 
@@ -53,9 +40,23 @@ enum EngineType: String, CaseIterable, Identifiable, Codable {
         cases.append(contentsOf: [.parakeet, .whisper])
         return cases
     }
+}
 
-    /// All cloud provider cases
-    static var cloudCases: [EngineType] {
-        [.groq, .openai]
+// MARK: - Cloud/Plugin Provider ID Utilities
+
+enum CloudProvider {
+    /// Check if a model ID uses the "provider:model" format (plugin engines)
+    static func isCloudModel(_ id: String) -> Bool {
+        id.contains(":")
+    }
+
+    static func parse(_ id: String) -> (provider: String, model: String) {
+        let parts = id.split(separator: ":", maxSplits: 1)
+        guard parts.count == 2 else { return (id, "") }
+        return (String(parts[0]), String(parts[1]))
+    }
+
+    static func fullId(provider: String, model: String) -> String {
+        "\(provider):\(model)"
     }
 }

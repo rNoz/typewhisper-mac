@@ -29,13 +29,10 @@ struct ModelInfo: Identifiable, Hashable {
         lhs.id == rhs.id
     }
 
-    var isCloud: Bool { engineType.isCloud }
-
     var isRecommended: Bool {
         if engineType == .speechAnalyzer {
             return matchesSelectedLanguage
         }
-        if isCloud { return false }
 
         let ram = ProcessInfo.processInfo.physicalMemory
         let gb = ram / (1024 * 1024 * 1024)
@@ -142,34 +139,8 @@ extension ModelInfo {
     nonisolated(unsafe) static var _speechAnalyzerModelProvider: (() -> [ModelInfo])?
     static var speechAnalyzerModels: [ModelInfo] { _speechAnalyzerModelProvider?() ?? [] }
 
-    static var groqModels: [ModelInfo] {
-        GroqEngine().transcriptionModels.map { cloud in
-            ModelInfo(
-                id: CloudProvider.fullId(provider: "groq", model: cloud.id),
-                engineType: .groq,
-                displayName: cloud.displayName,
-                sizeDescription: "Cloud",
-                estimatedSizeMB: 0,
-                languageCount: 99
-            )
-        }
-    }
-
-    static var openAiModels: [ModelInfo] {
-        OpenAIEngine().transcriptionModels.map { cloud in
-            ModelInfo(
-                id: CloudProvider.fullId(provider: "openai", model: cloud.id),
-                engineType: .openai,
-                displayName: cloud.displayName,
-                sizeDescription: "Cloud",
-                estimatedSizeMB: 0,
-                languageCount: 99
-            )
-        }
-    }
-
     static var allModels: [ModelInfo] {
-        whisperModels + parakeetModels + speechAnalyzerModels + groqModels + openAiModels
+        whisperModels + parakeetModels + speechAnalyzerModels
     }
 
     static func models(for engine: EngineType) -> [ModelInfo] {
@@ -177,8 +148,6 @@ extension ModelInfo {
         case .whisper: whisperModels
         case .parakeet: parakeetModels
         case .speechAnalyzer: speechAnalyzerModels
-        case .groq: groqModels
-        case .openai: openAiModels
         }
     }
 }

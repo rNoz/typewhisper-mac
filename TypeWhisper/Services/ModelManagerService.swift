@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import TypeWhisperPluginSDK
 
 @MainActor
 final class ModelManagerService: ObservableObject {
@@ -11,10 +12,6 @@ final class ModelManagerService: ObservableObject {
     private let whisperEngine = WhisperEngine()
     private let parakeetEngine = ParakeetEngine()
     private let _speechAnalyzerEngine: (any TranscriptionEngine)?
-    let groqEngine = GroqEngine()
-    let openAiEngine = OpenAIEngine()
-
-    var cloudEngines: [CloudTranscriptionEngine] { [groqEngine, openAiEngine] }
 
     private let engineKey = UserDefaultsKeys.selectedEngine
     private let modelKey = UserDefaultsKeys.selectedModelId
@@ -51,8 +48,6 @@ final class ModelManagerService: ObservableObject {
         case .whisper: return whisperEngine
         case .parakeet: return parakeetEngine
         case .speechAnalyzer: return _speechAnalyzerEngine ?? whisperEngine
-        case .groq: return groqEngine
-        case .openai: return openAiEngine
         }
     }
 
@@ -65,14 +60,17 @@ final class ModelManagerService: ObservableObject {
         selectedModelId = modelId
         UserDefaults.standard.set(modelId, forKey: modelKey)
 
+        // Check if this is a plugin engine model (format: "providerId:modelId")
         if CloudProvider.isCloudModel(modelId) {
-            let (provider, model) = CloudProvider.parse(modelId)
-            guard let cloudEngine = cloudEngines.first(where: { $0.providerId == provider }),
-                  let engineType = EngineType(rawValue: provider) else { return }
-            cloudEngine.selectTranscriptionModel(model)
-            activeEngine = cloudEngine
-            selectEngine(engineType)
-        } else if let model = ModelInfo.allModels.first(where: { $0.id == modelId }) {
+            let (providerId, pluginModelId) = CloudProvider.parse(modelId)
+            if let plugin = PluginManager.shared.transcriptionEngine(for: providerId) {
+                plugin.selectModel(pluginModelId)
+                // Don't set activeEngine for plugins - they're resolved on-demand
+                return
+            }
+        }
+
+        if let model = ModelInfo.allModels.first(where: { $0.id == modelId }) {
             let eng = engine(for: model.engineType)
             guard eng.isModelLoaded else { return }
             activeEngine = eng
@@ -81,28 +79,11 @@ final class ModelManagerService: ObservableObject {
     }
 
     func downloadAndLoadModel(_ model: ModelInfo) async {
-        // Cloud models are instantly "ready" when API key is configured
-        if model.isCloud {
-            let cloudEngine = engine(for: model.engineType) as? CloudTranscriptionEngine
-            guard cloudEngine?.isConfigured == true else {
-                modelStatuses[model.id] = .error("API key not configured")
-                return
-            }
-            let (_, modelPart) = CloudProvider.parse(model.id)
-            cloudEngine?.selectTranscriptionModel(modelPart)
-            modelStatuses[model.id] = .ready
-            activeEngine = cloudEngine
-            selectEngine(model.engineType)
-            selectModel(model.id)
-            addToLoadedModels(model.id, engineType: model.engineType)
-            return
-        }
-
         let engine = engine(for: model.engineType)
 
         modelStatuses[model.id] = .downloading(progress: 0)
 
-        // Listen for phase changes from WhisperKit (loading → prewarming)
+        // Listen for phase changes from WhisperKit (loading -> prewarming)
         if let whisperEngine = engine as? WhisperEngine {
             whisperEngine.onPhaseChange = { [weak self] phase in
                 Task { @MainActor [weak self] in
@@ -133,8 +114,13 @@ final class ModelManagerService: ObservableObject {
     }
 
     func loadAllSavedModels() async {
-        // Load cloud API keys first
-        loadCloudApiKeys()
+        // Restore selected plugin engine model
+        if let selectedId = selectedModelId, CloudProvider.isCloudModel(selectedId) {
+            let (providerId, pluginModelId) = CloudProvider.parse(selectedId)
+            if let plugin = PluginManager.shared.transcriptionEngine(for: providerId), plugin.isConfigured {
+                plugin.selectModel(pluginModelId)
+            }
+        }
 
         var modelIds = UserDefaults.standard.stringArray(forKey: loadedModelsKey) ?? []
 
@@ -146,7 +132,7 @@ final class ModelManagerService: ObservableObject {
 
         let modelsToLoad = modelIds.compactMap { id in
             ModelInfo.allModels.first(where: { $0.id == id })
-        }.filter { !$0.isCloud } // Cloud models are handled by loadCloudApiKeys
+        }
 
         if !modelsToLoad.isEmpty {
             await withTaskGroup(of: Void.self) { group in
@@ -254,126 +240,108 @@ final class ModelManagerService: ObservableObject {
         UserDefaults.standard.set(ids, forKey: loadedModelsKey)
     }
 
-    // MARK: - Cloud Provider Configuration
-
-    func configureCloudProvider(_ type: EngineType, apiKey: String) {
-        guard let cloudEngine = cloudEngines.first(where: { $0.engineType == type }) else { return }
-        cloudEngine.configure(apiKey: apiKey)
-
-        // Mark all models for this provider as ready
-        let providerModels = ModelInfo.models(for: type)
-        for model in providerModels {
-            modelStatuses[model.id] = .ready
-        }
-
-        // Auto-select first model for this provider
-        if let firstModel = providerModels.first {
-            let (_, modelPart) = CloudProvider.parse(firstModel.id)
-            cloudEngine.selectTranscriptionModel(modelPart)
-            activeEngine = cloudEngine
-            selectEngine(type)
-            selectModel(firstModel.id)
-            addToLoadedModels(firstModel.id, engineType: type)
-        }
-    }
-
-    func removeCloudProvider(_ type: EngineType) {
-        guard let cloudEngine = cloudEngines.first(where: { $0.engineType == type }) else { return }
-        cloudEngine.removeApiKey()
-
-        // Mark all models for this provider as not downloaded
-        for model in ModelInfo.models(for: type) {
-            modelStatuses[model.id] = .notDownloaded
-            removeFromLoadedModels(model.id)
-        }
-
-        // If current engine was this cloud provider, clear it
-        if selectedEngine == type {
-            if let fallback = findLoadedFallback(excluding: type) {
-                selectEngine(fallback.engineType)
-                selectModel(fallback.id)
-                activeEngine = self.engine(for: fallback.engineType)
-            } else {
-                selectedModelId = nil
-                UserDefaults.standard.removeObject(forKey: modelKey)
-                activeEngine = nil
-            }
-        }
-    }
-
-    func loadCloudApiKeys() {
-        for cloudEngine in cloudEngines {
-            cloudEngine.loadApiKey()
-            if cloudEngine.isConfigured {
-                for model in ModelInfo.models(for: cloudEngine.engineType) {
-                    modelStatuses[model.id] = .ready
-                }
-            }
-        }
-
-        // Restore selected cloud model
-        if let selectedId = selectedModelId, CloudProvider.isCloudModel(selectedId) {
-            let (provider, model) = CloudProvider.parse(selectedId)
-            if let cloudEngine = cloudEngines.first(where: { $0.providerId == provider }),
-               cloudEngine.isConfigured {
-                cloudEngine.selectTranscriptionModel(model)
-                activeEngine = cloudEngine
-            }
-        }
-    }
-
     func status(for model: ModelInfo) -> ModelStatus {
         modelStatuses[model.id] ?? .notDownloaded
     }
 
-    func resolvedModelDisplayName(engineOverride: EngineType? = nil, cloudModelOverride: String? = nil) -> String? {
-        if let override = engineOverride {
-            guard let cloudEngine = engine(for: override) as? CloudTranscriptionEngine else {
-                return ModelInfo.models(for: override).first(where: { status(for: $0) == .ready })?.displayName
+    // MARK: - Plugin Engine Resolution
+
+    /// Resolve which engine to use for transcription.
+    /// For plugin engines (String IDs not matching EngineType), returns nil but the caller
+    /// should use `transcribeWithPlugin()` instead.
+    func resolveEngine(override engineOverrideId: String?, cloudModelOverride: String? = nil) -> (any TranscriptionEngine)? {
+        guard let overrideId = engineOverrideId else { return activeEngine }
+
+        // Try builtin engine first
+        if let builtinType = EngineType(rawValue: overrideId) {
+            return engine(for: builtinType)
+        }
+
+        // Plugin engine - return nil (caller should use transcribeWithPlugin)
+        return nil
+    }
+
+    /// Check if an engine override ID refers to a plugin engine
+    func isPluginEngine(_ engineId: String) -> Bool {
+        EngineType(rawValue: engineId) == nil
+    }
+
+    /// Resolve the display name for the current or overridden model
+    func resolvedModelDisplayName(engineOverrideId: String? = nil, cloudModelOverride: String? = nil) -> String? {
+        if let overrideId = engineOverrideId {
+            // Builtin engine
+            if let builtinType = EngineType(rawValue: overrideId) {
+                return ModelInfo.models(for: builtinType).first(where: { status(for: $0) == .ready })?.displayName
             }
-            if let cloudModel = cloudModelOverride,
-               let info = cloudEngine.transcriptionModels.first(where: { $0.id == cloudModel }) {
-                return info.displayName
+            // Plugin engine
+            if let plugin = PluginManager.shared.transcriptionEngine(for: overrideId) {
+                if let modelId = cloudModelOverride,
+                   let model = plugin.transcriptionModels.first(where: { $0.id == modelId }) {
+                    return model.displayName
+                }
+                if let selectedId = plugin.selectedModelId,
+                   let model = plugin.transcriptionModels.first(where: { $0.id == selectedId }) {
+                    return model.displayName
+                }
+                return plugin.providerDisplayName
             }
-            return cloudEngine.selectedModel?.displayName
+            return nil
         }
 
         guard let selectedId = selectedModelId else { return nil }
         if CloudProvider.isCloudModel(selectedId) {
-            let (provider, model) = CloudProvider.parse(selectedId)
-            if let cloudEngine = cloudEngines.first(where: { $0.providerId == provider }),
-               let info = cloudEngine.transcriptionModels.first(where: { $0.id == model }) {
-                return info.displayName
+            let (providerId, modelId) = CloudProvider.parse(selectedId)
+            if let plugin = PluginManager.shared.transcriptionEngine(for: providerId),
+               let model = plugin.transcriptionModels.first(where: { $0.id == modelId }) {
+                return model.displayName
             }
         }
         return ModelInfo.allModels.first(where: { $0.id == selectedId })?.displayName
     }
 
-    func resolveEngine(override: EngineType?, cloudModelOverride: String? = nil) -> (any TranscriptionEngine)? {
-        guard let override else { return activeEngine }
-        let e = engine(for: override)
-        // For cloud engines: select model BEFORE checking isModelLoaded
-        if let cloudEngine = e as? CloudTranscriptionEngine {
-            if let cloudModel = cloudModelOverride {
-                cloudEngine.selectTranscriptionModel(cloudModel)
-            } else if cloudEngine.selectedModel == nil,
-                      let firstModel = cloudEngine.transcriptionModels.first {
-                cloudEngine.selectTranscriptionModel(firstModel.id)
-            }
-        }
-        guard e.isModelLoaded else { return activeEngine }
-        return e
-    }
+    // MARK: - Transcription
 
     func transcribe(
         audioSamples: [Float],
         language: String?,
         task: TranscriptionTask,
-        engineOverride: EngineType? = nil,
+        engineOverrideId: String? = nil,
         cloudModelOverride: String? = nil,
         prompt: String? = nil
     ) async throws -> TranscriptionResult {
-        guard let engine = resolveEngine(override: engineOverride, cloudModelOverride: cloudModelOverride) else {
+        let effectiveOverrideId = engineOverrideId
+
+        // Check if this is a plugin engine
+        if let overrideId = effectiveOverrideId, isPluginEngine(overrideId) {
+            return try await transcribeWithPlugin(
+                providerId: overrideId,
+                audioSamples: audioSamples,
+                language: language,
+                translate: task == .translate,
+                prompt: prompt,
+                cloudModelOverride: cloudModelOverride
+            )
+        }
+
+        // Also check if the selected model is a plugin engine (no override)
+        if effectiveOverrideId == nil,
+           let selectedId = selectedModelId,
+           CloudProvider.isCloudModel(selectedId) {
+            let (providerId, _) = CloudProvider.parse(selectedId)
+            if isPluginEngine(providerId) {
+                return try await transcribeWithPlugin(
+                    providerId: providerId,
+                    audioSamples: audioSamples,
+                    language: language,
+                    translate: task == .translate,
+                    prompt: prompt,
+                    cloudModelOverride: cloudModelOverride
+                )
+            }
+        }
+
+        // Builtin engine
+        guard let engine = resolveEngine(override: effectiveOverrideId, cloudModelOverride: cloudModelOverride) else {
             throw TranscriptionEngineError.modelNotLoaded
         }
         return try await engine.transcribe(
@@ -388,12 +356,42 @@ final class ModelManagerService: ObservableObject {
         audioSamples: [Float],
         language: String?,
         task: TranscriptionTask,
-        engineOverride: EngineType? = nil,
+        engineOverrideId: String? = nil,
         cloudModelOverride: String? = nil,
         prompt: String? = nil,
         onProgress: @Sendable @escaping (String) -> Bool
     ) async throws -> TranscriptionResult {
-        guard let engine = resolveEngine(override: engineOverride, cloudModelOverride: cloudModelOverride) else {
+        let effectiveOverrideId = engineOverrideId
+
+        // Plugin engines don't support streaming - fall back to batch
+        if let overrideId = effectiveOverrideId, isPluginEngine(overrideId) {
+            return try await transcribe(
+                audioSamples: audioSamples,
+                language: language,
+                task: task,
+                engineOverrideId: engineOverrideId,
+                cloudModelOverride: cloudModelOverride,
+                prompt: prompt
+            )
+        }
+
+        if effectiveOverrideId == nil,
+           let selectedId = selectedModelId,
+           CloudProvider.isCloudModel(selectedId) {
+            let (providerId, _) = CloudProvider.parse(selectedId)
+            if isPluginEngine(providerId) {
+                return try await transcribe(
+                    audioSamples: audioSamples,
+                    language: language,
+                    task: task,
+                    engineOverrideId: nil,
+                    cloudModelOverride: cloudModelOverride,
+                    prompt: prompt
+                )
+            }
+        }
+
+        guard let engine = resolveEngine(override: effectiveOverrideId, cloudModelOverride: cloudModelOverride) else {
             throw TranscriptionEngineError.modelNotLoaded
         }
         return try await engine.transcribe(
@@ -402,6 +400,66 @@ final class ModelManagerService: ObservableObject {
             task: task,
             prompt: prompt,
             onProgress: onProgress
+        )
+    }
+
+    // MARK: - Plugin Transcription
+
+    private func transcribeWithPlugin(
+        providerId: String,
+        audioSamples: [Float],
+        language: String?,
+        translate: Bool,
+        prompt: String?,
+        cloudModelOverride: String?
+    ) async throws -> TranscriptionResult {
+        guard let plugin = PluginManager.shared.transcriptionEngine(for: providerId),
+              plugin.isConfigured else {
+            // Fall back to active local engine
+            guard let engine = activeEngine, engine.isModelLoaded else {
+                throw TranscriptionEngineError.modelNotLoaded
+            }
+            return try await engine.transcribe(
+                audioSamples: audioSamples,
+                language: language,
+                task: translate ? .translate : .transcribe,
+                prompt: prompt
+            )
+        }
+
+        if let modelId = cloudModelOverride {
+            plugin.selectModel(modelId)
+        } else if plugin.selectedModelId == nil,
+                  let firstModel = plugin.transcriptionModels.first {
+            plugin.selectModel(firstModel.id)
+        }
+
+        let startTime = CFAbsoluteTimeGetCurrent()
+        let wavData = WavEncoder.encode(audioSamples)
+        let audioDuration = Double(audioSamples.count) / 16000.0
+
+        let audio = AudioData(
+            samples: audioSamples,
+            wavData: wavData,
+            duration: audioDuration
+        )
+
+        let result = try await plugin.transcribe(
+            audio: audio,
+            language: language,
+            translate: translate,
+            prompt: prompt
+        )
+
+        let processingTime = CFAbsoluteTimeGetCurrent() - startTime
+
+        return TranscriptionResult(
+            text: result.text,
+            detectedLanguage: result.detectedLanguage,
+            duration: audioDuration,
+            processingTime: processingTime,
+            engineUsed: providerId,
+            segments: []
         )
     }
 }

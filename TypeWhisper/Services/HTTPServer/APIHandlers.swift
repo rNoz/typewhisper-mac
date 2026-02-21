@@ -112,7 +112,7 @@ final class APIHandlers: @unchecked Sendable {
                 language: result.detectedLanguage,
                 duration: result.duration,
                 processing_time: result.processingTime,
-                engine: result.engineUsed.rawValue,
+                engine: result.engineUsed,
                 model: modelId
             )
             return .json(response)

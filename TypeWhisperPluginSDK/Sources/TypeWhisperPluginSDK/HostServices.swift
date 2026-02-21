@@ -24,3 +24,208 @@ public protocol HostServices: Sendable {
     // Available profile names
     var availableProfileNames: [String] { get }
 }
+
+// MARK: - WAV Encoder Utility
+
+public struct PluginWavEncoder {
+    public static func encode(_ samples: [Float], sampleRate: Int = 16000) -> Data {
+        let numChannels: UInt16 = 1
+        let bitsPerSample: UInt16 = 16
+        let byteRate = UInt32(sampleRate) * UInt32(numChannels) * UInt32(bitsPerSample / 8)
+        let blockAlign = numChannels * (bitsPerSample / 8)
+        let dataSize = UInt32(samples.count * Int(blockAlign))
+        let fileSize = 36 + dataSize
+
+        var data = Data(capacity: 44 + Int(dataSize))
+
+        // RIFF header
+        data.append(contentsOf: [0x52, 0x49, 0x46, 0x46]) // "RIFF"
+        data.append(contentsOf: withUnsafeBytes(of: fileSize.littleEndian) { Array($0) })
+        data.append(contentsOf: [0x57, 0x41, 0x56, 0x45]) // "WAVE"
+
+        // fmt chunk
+        data.append(contentsOf: [0x66, 0x6D, 0x74, 0x20]) // "fmt "
+        data.append(contentsOf: withUnsafeBytes(of: UInt32(16).littleEndian) { Array($0) })
+        data.append(contentsOf: withUnsafeBytes(of: UInt16(1).littleEndian) { Array($0) })
+        data.append(contentsOf: withUnsafeBytes(of: numChannels.littleEndian) { Array($0) })
+        data.append(contentsOf: withUnsafeBytes(of: UInt32(sampleRate).littleEndian) { Array($0) })
+        data.append(contentsOf: withUnsafeBytes(of: byteRate.littleEndian) { Array($0) })
+        data.append(contentsOf: withUnsafeBytes(of: blockAlign.littleEndian) { Array($0) })
+        data.append(contentsOf: withUnsafeBytes(of: bitsPerSample.littleEndian) { Array($0) })
+
+        // data chunk
+        data.append(contentsOf: [0x64, 0x61, 0x74, 0x61]) // "data"
+        data.append(contentsOf: withUnsafeBytes(of: dataSize.littleEndian) { Array($0) })
+
+        for sample in samples {
+            let clamped = max(-1.0, min(1.0, sample))
+            let int16Value = Int16(clamped * 32767)
+            data.append(contentsOf: withUnsafeBytes(of: int16Value.littleEndian) { Array($0) })
+        }
+
+        return data
+    }
+}
+
+// MARK: - OpenAI-Compatible Transcription Helper
+
+public enum PluginTranscriptionError: LocalizedError, Sendable {
+    case notConfigured
+    case noModelSelected
+    case invalidApiKey
+    case rateLimited
+    case fileTooLarge
+    case apiError(String)
+    case networkError(String)
+
+    public var errorDescription: String? {
+        switch self {
+        case .notConfigured:
+            "Cloud provider not configured. Please set an API key."
+        case .noModelSelected:
+            "No cloud model selected."
+        case .invalidApiKey:
+            "Invalid API key. Please check your API key and try again."
+        case .rateLimited:
+            "Rate limit exceeded. Please wait and try again."
+        case .fileTooLarge:
+            "Audio file too large for the API."
+        case .apiError(let message):
+            "API error: \(message)"
+        case .networkError(let message):
+            "Network error: \(message)"
+        }
+    }
+}
+
+public struct PluginOpenAITranscriptionHelper: Sendable {
+    public let baseURL: String
+    public let responseFormat: String
+
+    public init(baseURL: String, responseFormat: String = "verbose_json") {
+        self.baseURL = baseURL
+        self.responseFormat = responseFormat
+    }
+
+    public func transcribe(
+        audio: AudioData,
+        apiKey: String,
+        modelName: String,
+        language: String?,
+        translate: Bool,
+        prompt: String?,
+        responseFormat: String? = nil
+    ) async throws -> PluginTranscriptionResult {
+        let endpoint: String
+        if translate {
+            endpoint = "\(baseURL)/v1/audio/translations"
+        } else {
+            endpoint = "\(baseURL)/v1/audio/transcriptions"
+        }
+
+        guard let url = URL(string: endpoint) else {
+            throw PluginTranscriptionError.apiError("Invalid URL: \(endpoint)")
+        }
+
+        let boundary = UUID().uuidString
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 120
+
+        var body = Data()
+
+        // file field
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"audio.wav\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: audio/wav\r\n\r\n".data(using: .utf8)!)
+        body.append(audio.wavData)
+        body.append("\r\n".data(using: .utf8)!)
+
+        // model field
+        body.appendFormField(boundary: boundary, name: "model", value: modelName)
+
+        // response_format field
+        let format = responseFormat ?? self.responseFormat
+        body.appendFormField(boundary: boundary, name: "response_format", value: format)
+
+        // language field (only for transcription)
+        if !translate, let language, !language.isEmpty {
+            body.appendFormField(boundary: boundary, name: "language", value: language)
+        }
+
+        // prompt field
+        if let prompt, !prompt.isEmpty {
+            body.appendFormField(boundary: boundary, name: "prompt", value: prompt)
+        }
+
+        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
+        request.httpBody = body
+
+        let (responseData, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw PluginTranscriptionError.networkError("Invalid response")
+        }
+
+        switch httpResponse.statusCode {
+        case 200:
+            break
+        case 401:
+            throw PluginTranscriptionError.invalidApiKey
+        case 429:
+            throw PluginTranscriptionError.rateLimited
+        case 413:
+            throw PluginTranscriptionError.fileTooLarge
+        default:
+            let errorMessage = String(data: responseData, encoding: .utf8) ?? "Unknown error"
+            throw PluginTranscriptionError.apiError("HTTP \(httpResponse.statusCode): \(errorMessage)")
+        }
+
+        return try parseResponse(responseData)
+    }
+
+    public func validateApiKey(_ apiKey: String) async -> Bool {
+        guard !apiKey.isEmpty else { return false }
+        guard let url = URL(string: "\(baseURL)/v1/models") else { return false }
+
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.timeoutInterval = 10
+
+        do {
+            let (_, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse else { return false }
+            return httpResponse.statusCode == 200
+        } catch {
+            return false
+        }
+    }
+
+    private struct APIResponse: Decodable {
+        let text: String
+        let language: String?
+    }
+
+    private func parseResponse(_ data: Data) throws -> PluginTranscriptionResult {
+        do {
+            let response = try JSONDecoder().decode(APIResponse.self, from: data)
+            return PluginTranscriptionResult(text: response.text, detectedLanguage: response.language)
+        } catch {
+            if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let text = json["text"] as? String {
+                return PluginTranscriptionResult(text: text, detectedLanguage: json["language"] as? String)
+            }
+            throw PluginTranscriptionError.apiError("Failed to parse response: \(error.localizedDescription)")
+        }
+    }
+}
+
+private extension Data {
+    mutating func appendFormField(boundary: String, name: String, value: String) {
+        append("--\(boundary)\r\n".data(using: .utf8)!)
+        append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
+        append("\(value)\r\n".data(using: .utf8)!)
+    }
+}

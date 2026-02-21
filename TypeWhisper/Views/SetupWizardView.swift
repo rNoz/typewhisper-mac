@@ -227,7 +227,7 @@ struct SetupWizardView: View {
             Text(String(localized: "Parakeet — extremely fast on Apple Silicon, 25 European languages."))
         case .whisper:
             Text(String(localized: "WhisperKit — 99+ languages, supports streaming and translation to English."))
-        case .groq, .openai:
+        @unknown default:
             Text(String(localized: "Cloud — requires an API key. Fast transcription via cloud API."))
         }
     }
@@ -240,15 +240,11 @@ struct SetupWizardView: View {
                 .font(.callout)
                 .foregroundStyle(.secondary)
 
-            ForEach(EngineType.cloudCases) { provider in
-                CloudProviderSection(provider: provider, viewModel: modelManager)
-            }
-
-            Text(String(localized: "API keys are stored securely in the Keychain"))
-                .font(.caption)
+            Text(String(localized: "Cloud transcription providers can be added through plugins."))
+                .font(.callout)
                 .foregroundStyle(.secondary)
 
-            Text(String(localized: "You can skip this step and configure cloud providers later in Settings."))
+            Text(String(localized: "You can configure cloud providers later in Settings > Integrations."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

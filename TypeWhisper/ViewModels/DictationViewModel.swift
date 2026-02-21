@@ -373,9 +373,8 @@ final class DictationViewModel: ObservableObject {
         return nil
     }
 
-    private var effectiveEngineOverride: EngineType? {
-        guard let raw = matchedProfile?.engineOverride else { return nil }
-        return EngineType(rawValue: raw)
+    private var effectiveEngineOverrideId: String? {
+        matchedProfile?.engineOverride
     }
 
     private var effectiveCloudModelOverride: String? {
@@ -444,7 +443,7 @@ final class DictationViewModel: ObservableObject {
                 let activeApp = capturedActiveApp ?? textInsertionService.captureActiveApp()
                 let language = effectiveLanguage
                 let task = effectiveTask
-                let engineOverride = effectiveEngineOverride
+                let engineOverride = effectiveEngineOverrideId
                 let cloudModelOverride = effectiveCloudModelOverride
                 let translationTarget = effectiveTranslationTarget
                 let termsPrompt = dictionaryService.getTermsForPrompt()
@@ -453,7 +452,7 @@ final class DictationViewModel: ObservableObject {
                     audioSamples: samples,
                     language: language,
                     task: task,
-                    engineOverride: engineOverride,
+                    engineOverrideId: engineOverride,
                     cloudModelOverride: cloudModelOverride,
                     prompt: termsPrompt
                 )
@@ -517,7 +516,7 @@ final class DictationViewModel: ObservableObject {
                 }
 
                 let modelDisplayName = modelManager.resolvedModelDisplayName(
-                    engineOverride: engineOverride,
+                    engineOverrideId: engineOverride,
                     cloudModelOverride: cloudModelOverride
                 )
 
@@ -529,7 +528,7 @@ final class DictationViewModel: ObservableObject {
                     appURL: activeApp.url,
                     durationSeconds: audioDuration,
                     language: language,
-                    engineUsed: result.engineUsed.rawValue,
+                    engineUsed: result.engineUsed,
                     modelUsed: modelDisplayName
                 )
 
@@ -537,7 +536,7 @@ final class DictationViewModel: ObservableObject {
                     rawText: result.text,
                     finalText: text,
                     language: language,
-                    engineUsed: result.engineUsed.rawValue,
+                    engineUsed: result.engineUsed,
                     modelUsed: modelDisplayName,
                     durationSeconds: audioDuration,
                     appName: activeApp.name,
@@ -778,14 +777,18 @@ final class DictationViewModel: ObservableObject {
     private var confirmedStreamingText = ""
 
     private func startStreamingIfSupported() {
-        let resolvedEngine = modelManager.resolveEngine(override: effectiveEngineOverride, cloudModelOverride: effectiveCloudModelOverride)
+        // Plugin engines don't support streaming
+        if let overrideId = effectiveEngineOverrideId, modelManager.isPluginEngine(overrideId) {
+            return
+        }
+        let resolvedEngine = modelManager.resolveEngine(override: effectiveEngineOverrideId, cloudModelOverride: effectiveCloudModelOverride)
         guard let engine = resolvedEngine, engine.supportsStreaming else { return }
 
         isStreaming = true
         confirmedStreamingText = ""
         let streamLanguage = effectiveLanguage
         let streamTask = effectiveTask
-        let streamEngineOverride = effectiveEngineOverride
+        let streamEngineOverride = effectiveEngineOverrideId
         let streamCloudModelOverride = effectiveCloudModelOverride
         let streamPrompt = dictionaryService.getTermsForPrompt()
         streamingTask = Task { [weak self] in
@@ -804,7 +807,7 @@ final class DictationViewModel: ObservableObject {
                             audioSamples: buffer,
                             language: streamLanguage,
                             task: streamTask,
-                            engineOverride: streamEngineOverride,
+                            engineOverrideId: streamEngineOverride,
                             cloudModelOverride: streamCloudModelOverride,
                             prompt: streamPrompt,
                             onProgress: { [weak self] text in

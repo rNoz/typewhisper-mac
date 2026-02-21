@@ -3,7 +3,7 @@ import SwiftUI
 
 // MARK: - Base Plugin Protocol
 
-public protocol TypeWhisperPlugin: AnyObject {
+public protocol TypeWhisperPlugin: AnyObject, Sendable {
     static var pluginId: String { get }
     static var pluginName: String { get }
 
@@ -56,4 +56,39 @@ public protocol PostProcessorPlugin: TypeWhisperPlugin {
     var processorName: String { get }
     var priority: Int { get }
     @MainActor func process(text: String, context: PostProcessingContext) async throws -> String
+}
+
+// MARK: - Transcription Engine Plugin
+
+public struct AudioData: Sendable {
+    public let samples: [Float]       // 16kHz mono
+    public let wavData: Data          // Pre-encoded WAV
+    public let duration: TimeInterval
+
+    public init(samples: [Float], wavData: Data, duration: TimeInterval) {
+        self.samples = samples
+        self.wavData = wavData
+        self.duration = duration
+    }
+}
+
+public struct PluginTranscriptionResult: Sendable {
+    public let text: String
+    public let detectedLanguage: String?
+
+    public init(text: String, detectedLanguage: String? = nil) {
+        self.text = text
+        self.detectedLanguage = detectedLanguage
+    }
+}
+
+public protocol TranscriptionEnginePlugin: TypeWhisperPlugin {
+    var providerId: String { get }
+    var providerDisplayName: String { get }
+    var isConfigured: Bool { get }
+    var transcriptionModels: [PluginModelInfo] { get }
+    var selectedModelId: String? { get }
+    func selectModel(_ modelId: String)
+    var supportsTranslation: Bool { get }
+    func transcribe(audio: AudioData, language: String?, translate: Bool, prompt: String?) async throws -> PluginTranscriptionResult
 }

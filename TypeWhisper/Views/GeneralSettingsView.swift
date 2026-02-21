@@ -49,7 +49,7 @@ struct GeneralSettingsView: View {
             }
 
             Section(String(localized: "Default Model")) {
-                if modelManager.readyModels.isEmpty {
+                if modelManager.readyModels.isEmpty && modelManager.configuredPluginEngines.isEmpty {
                     Text(String(localized: "No models available. Download or configure a model in the Models tab."))
                         .foregroundStyle(.secondary)
                 } else {
@@ -60,6 +60,17 @@ struct GeneralSettingsView: View {
                         ForEach(modelManager.readyModels) { model in
                             Text("\(model.displayName) (\(model.engineType.displayName))")
                                 .tag(model.id as String?)
+                        }
+
+                        if !modelManager.configuredPluginEngines.isEmpty && !modelManager.readyModels.isEmpty {
+                            Divider()
+                        }
+
+                        ForEach(modelManager.configuredPluginEngines, id: \.providerId) { engine in
+                            ForEach(engine.transcriptionModels, id: \.id) { model in
+                                Text("\(model.displayName) (\(engine.providerDisplayName))")
+                                    .tag(CloudProvider.fullId(provider: engine.providerId, model: model.id) as String?)
+                            }
                         }
                     }
                 }
