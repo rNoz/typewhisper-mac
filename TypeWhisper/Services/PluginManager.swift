@@ -91,6 +91,16 @@ final class PluginManager: ObservableObject {
         for bundleURL in bundles {
             loadPlugin(at: bundleURL)
         }
+
+        // Built-in plugins from app bundle
+        if let builtInURL = Bundle.main.builtInPlugInsURL,
+           let builtIn = try? fm.contentsOfDirectory(at: builtInURL, includingPropertiesForKeys: nil) {
+            let builtInBundles = builtIn.filter { $0.pathExtension == "bundle" }
+            logger.info("Found \(builtInBundles.count) built-in plugin bundle(s)")
+            for bundleURL in builtInBundles {
+                loadPlugin(at: bundleURL)
+            }
+        }
     }
 
     private func loadPlugin(at url: URL) {
