@@ -45,6 +45,7 @@ Speech-to-text and AI text processing for macOS. Transcribe audio using on-devic
 - **Sound feedback** - Audio cues for recording start, transcription success, and errors
 - **Media pause** - Automatically pauses media playback during recording
 - **Whisper mode** - Boosted microphone gain for quiet speech
+- **Plugin system** - Extend TypeWhisper with custom LLM providers, transcription engines, and post-processors. Groq, OpenAI, and Gemini ship as bundled plugins. See [Plugins/README.md](Plugins/README.md) for details
 - **Auto-update** - Built-in updates via Sparkle
 - **Launch at Login** - Start automatically with macOS
 - **Multilingual UI** - English and German
@@ -210,11 +211,21 @@ The active profile name is shown as a badge in the recording overlay.
 
 Multiple engines can be loaded simultaneously for instant switching between profiles. Note that loading multiple local models increases memory usage. Cloud engines (Groq, OpenAI) have negligible memory overhead.
 
+## Plugins
+
+TypeWhisper supports plugins for adding custom LLM providers, transcription engines, and post-processors. Plugins are macOS `.bundle` files placed in `~/Library/Application Support/TypeWhisper/Plugins/`.
+
+The built-in cloud providers (Groq, OpenAI, Gemini) are implemented as bundled plugins and serve as reference implementations.
+
+See [Plugins/README.md](Plugins/README.md) for the full plugin development guide, including the event bus, host services API, and manifest format.
+
 ## Architecture
 
 ```
 TypeWhisper/
 ├── typewhisper-cli/           # Command-line tool (status, models, transcribe)
+├── Plugins/                # Bundled plugins (Groq, OpenAI, Gemini, Webhook)
+├── TypeWhisperPluginSDK/   # Plugin SDK (Swift package)
 ├── App/                    # App entry point, dependency injection
 ├── Models/                 # Data models (ModelInfo, TranscriptionResult, EngineType, Profile, etc.)
 ├── Services/
