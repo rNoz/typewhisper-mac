@@ -27,34 +27,49 @@ Speech-to-text and AI text processing for macOS. Transcribe audio using on-devic
 
 ## Features
 
-- **On-device transcription** - All processing happens locally on your Mac
-- **Cloud transcription** - Optional Groq and OpenAI Whisper APIs for faster processing. Dictionary terms are sent as prompt hints for better recognition
-- **Five transcription engines** - WhisperKit (99+ languages, streaming, translation), Parakeet TDT v3 (25 European languages, extremely fast), Apple SpeechAnalyzer (macOS 26+, no model download needed), Groq Whisper, and OpenAI Whisper
-- **System-wide dictation** - Push-to-talk or toggle mode via global hotkey, auto-pastes into any app
+### Transcription
+
+- **Five engines** - WhisperKit (99+ languages, streaming, translation), Parakeet TDT v3 (25 European languages, extremely fast), Apple SpeechAnalyzer (macOS 26+, no model download needed), Groq Whisper, and OpenAI Whisper
+- **On-device or cloud** - All processing happens locally on your Mac, or use Groq/OpenAI Whisper APIs for faster processing
 - **Streaming preview** - See partial transcription in real-time while speaking (WhisperKit)
-- **Custom prompts** - Process transcriptions (or any text) with LLM prompts. 8 presets included (Translate, Formal, Summarize, Fix Grammar, Email, List, Shorter, Explain). Supports Apple Intelligence (macOS 26+), Groq, and OpenAI as LLM providers with per-prompt provider and model override. Assign prompts to profiles for automatic post-processing. Standalone Prompt Palette via global hotkey for text processing without dictation
-- **Translation** - Translate transcriptions on-device using Apple Translate
 - **File transcription** - Batch-process multiple audio/video files with drag & drop
 - **Subtitle export** - Export transcriptions as SRT or WebVTT with timestamps
-- **Local HTTP API** - REST API for integration with external tools and scripts
-- **App-specific profiles** - Per-app and per-website overrides for language, task, engine, and whisper mode. Match by app (bundle ID) and/or domain (with subdomain support). Automatically activates when dictating in a matched application or website
-- **Dictionary** - Terms improve recognition accuracy by prompting cloud APIs with domain-specific vocabulary. Corrections fix common transcription mistakes automatically. Includes importable term packs
+
+### Dictation
+
+- **System-wide** - Push-to-talk, toggle, or hybrid mode via global hotkey, auto-pastes into any app
+- **Modifier-key hotkeys** - Use a single modifier key (Command, Shift, Option, Control) as your hotkey
+- **Whisper mode** - Boosted microphone gain for quiet speech
+- **Media pause** - Automatically pauses media playback during recording
+- **Sound feedback** - Audio cues for recording start, transcription success, and errors
+- **Microphone selection** - Choose a specific input device with live preview
+
+### AI Processing
+
+- **Custom prompts** - Process transcriptions (or any text) with LLM prompts. 8 presets included (Translate, Formal, Summarize, Fix Grammar, Email, List, Shorter, Explain). Standalone Prompt Palette via global hotkey for text processing without dictation
+- **LLM providers** - Apple Intelligence (macOS 26+), Groq, OpenAI, and Gemini with per-prompt provider and model override
+- **Translation** - Translate transcriptions on-device using Apple Translate
+
+### Personalization
+
+- **Profiles** - Per-app and per-website overrides for language, task, engine, whisper mode, and prompt. Match by app (bundle ID) and/or domain with subdomain support
+- **Dictionary** - Terms improve cloud recognition accuracy. Corrections fix common transcription mistakes automatically. Auto-learns from manual corrections. Includes importable term packs
 - **Snippets** - Text shortcuts with trigger/replacement. Supports placeholders like `{{DATE}}`, `{{TIME}}`, and `{{CLIPBOARD}}`
 - **History** - Searchable transcription history with inline editing, correction detection, and app context tracking
-- **Home dashboard** - Usage statistics (words, WPM, apps used, time saved), activity chart, and onboarding tutorial
-- **Sound feedback** - Audio cues for recording start, transcription success, and errors
-- **Media pause** - Automatically pauses media playback during recording
-- **Whisper mode** - Boosted microphone gain for quiet speech
-- **Plugin system** - Extend TypeWhisper with custom LLM providers, transcription engines, and post-processors. Groq, OpenAI, and Gemini ship as bundled plugins. See [Plugins/README.md](Plugins/README.md) for details
-- **Auto-update** - Built-in updates via Sparkle
-- **Launch at Login** - Start automatically with macOS
-- **Multilingual UI** - English and German
-- **Microphone selection** - Choose a specific input device with live preview
-- **Modifier-key hotkeys** - Use a single modifier key (Command, Shift, Option, Control) as your hotkey
-- **Auto-learn corrections** - Dictionary automatically learns from manual corrections
-- **Universal binary** - Runs natively on Apple Silicon and Intel Macs
-- **Setup wizard** - Interactive 3-step onboarding assistant
+
+### Integration & Extensibility
+
+- **Plugin system** - Extend TypeWhisper with custom LLM providers, transcription engines, and post-processors. Groq, OpenAI, and Gemini ship as bundled plugins. See [Plugins/README.md](Plugins/README.md)
+- **HTTP API** - Local REST API for integration with external tools and scripts
 - **CLI tool** - Shell-friendly transcription via the command line
+
+### General
+
+- **Home dashboard** - Usage statistics, activity chart, and onboarding tutorial
+- **Auto-update** - Built-in updates via Sparkle
+- **Universal binary** - Runs natively on Apple Silicon and Intel Macs
+- **Multilingual UI** - English and German
+- **Launch at Login** - Start automatically with macOS
 
 ## System Requirements
 
