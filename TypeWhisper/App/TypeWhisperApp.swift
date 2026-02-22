@@ -9,7 +9,7 @@ struct TypeWhisperApp: App {
     @StateObject private var serviceContainer = ServiceContainer.shared
 
     var body: some Scene {
-        MenuBarExtra("TypeWhisper", systemImage: "waveform") {
+        MenuBarExtra(AppConstants.isDevelopment ? "TypeWhisper Dev" : "TypeWhisper", systemImage: "waveform") {
             MenuBarView()
         }
         .menuBarExtraStyle(.menu)

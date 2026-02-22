@@ -10,9 +10,7 @@ final class WhisperEngine: TranscriptionEngine, @unchecked Sendable {
     private var whisperKit: WhisperKit?
     private var currentModelId: String?
 
-    static let downloadBase: URL = FileManager.default
-        .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        .appending(component: "TypeWhisper")
+    static let downloadBase: URL = AppConstants.appSupportDirectory
         .appending(component: "models")
 
     var supportedLanguages: [String] {

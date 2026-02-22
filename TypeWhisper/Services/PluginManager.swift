@@ -76,9 +76,7 @@ final class PluginManager: ObservableObject {
     }
 
     init() {
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        self.pluginsDirectory = appSupport
-            .appendingPathComponent("TypeWhisper", isDirectory: true)
+        self.pluginsDirectory = AppConstants.appSupportDirectory
             .appendingPathComponent("Plugins", isDirectory: true)
 
         try? FileManager.default.createDirectory(at: pluginsDirectory, withIntermediateDirectories: true)
@@ -146,7 +144,7 @@ final class PluginManager: ObservableObject {
         let instance = pluginClass.init()
 
         let enabledKey = "plugin.\(manifest.id).enabled"
-        let isEnabled = UserDefaults.standard.object(forKey: enabledKey) as? Bool ?? true
+        let isEnabled = UserDefaults.standard.object(forKey: enabledKey) as? Bool ?? false
 
         let loaded = LoadedPlugin(
             manifest: manifest, instance: instance, bundle: bundle, isEnabled: isEnabled

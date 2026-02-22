@@ -18,8 +18,7 @@ final class HistoryService: ObservableObject {
 
     init() {
         let schema = Schema([TranscriptionRecord.self])
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let storeDir = appSupport.appendingPathComponent("TypeWhisper", isDirectory: true)
+        let storeDir = AppConstants.appSupportDirectory
         try? FileManager.default.createDirectory(at: storeDir, withIntermediateDirectories: true)
 
         let storeURL = storeDir.appendingPathComponent("history.store")

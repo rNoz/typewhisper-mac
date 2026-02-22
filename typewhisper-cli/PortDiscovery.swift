@@ -3,9 +3,10 @@ import Foundation
 enum PortDiscovery {
     static let defaultPort: UInt16 = 8978
 
-    static func discoverPort() -> UInt16 {
+    static func discoverPort(dev: Bool = false) -> UInt16 {
+        let dirName = dev ? "TypeWhisper-Dev" : "TypeWhisper"
         let portFileURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("TypeWhisper")
+            .appendingPathComponent(dirName)
             .appendingPathComponent("api-port")
 
         guard let content = try? String(contentsOf: portFileURL, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines),

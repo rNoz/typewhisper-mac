@@ -67,8 +67,7 @@ final class APIServerViewModel: ObservableObject {
     // MARK: - Port File
 
     private static var portFileURL: URL {
-        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("TypeWhisper")
+        AppConstants.appSupportDirectory
             .appendingPathComponent("api-port")
     }
 

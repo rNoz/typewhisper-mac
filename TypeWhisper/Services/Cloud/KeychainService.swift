@@ -2,7 +2,7 @@ import Foundation
 import Security
 
 struct KeychainService: Sendable {
-    private static let servicePrefix = "com.typewhisper.mac.apikey."
+    private static let servicePrefix = AppConstants.keychainServicePrefix
 
     static func save(key: String, service: String) throws {
         let fullService = servicePrefix + service

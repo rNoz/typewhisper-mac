@@ -4,6 +4,7 @@ let args = CommandLine.arguments.dropFirst()
 
 var portOverride: UInt16?
 var jsonOutput = false
+var devMode = false
 var command: String?
 var positionalArgs = [String]()
 
@@ -29,6 +30,8 @@ while let arg = argIterator.next() {
         portOverride = p
     case "--json":
         jsonOutput = true
+    case "--dev":
+        devMode = true
     case "--language":
         guard let next = argIterator.next() else {
             printError("Error: --language requires a value.")
@@ -70,7 +73,7 @@ guard let command else {
     exit(1)
 }
 
-let port = portOverride ?? PortDiscovery.discoverPort()
+let port = portOverride ?? PortDiscovery.discoverPort(dev: devMode)
 let client = CLIClient(port: port)
 
 do {
@@ -126,6 +129,7 @@ func printUsage() {
 
         Global options:
           --port <N>           Server port (default: auto-detect)
+          --dev                Connect to TypeWhisper Dev instance
           --json               Output as JSON
           --help, -h           Show help
           --version            Show version
@@ -146,5 +150,5 @@ func printUsage() {
 }
 
 func printVersion() {
-    print("typewhisper 0.6.1")
+    print("typewhisper 0.9.2")
 }

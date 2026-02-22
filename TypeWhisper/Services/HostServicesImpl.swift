@@ -13,9 +13,7 @@ final class HostServicesImpl: HostServices, @unchecked Sendable {
         self.eventBus = eventBus
         self.profileNamesProvider = profileNamesProvider
 
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        self.pluginDataDirectory = appSupport
-            .appendingPathComponent("TypeWhisper", isDirectory: true)
+        self.pluginDataDirectory = AppConstants.appSupportDirectory
             .appendingPathComponent("PluginData", isDirectory: true)
             .appendingPathComponent(pluginId, isDirectory: true)
 

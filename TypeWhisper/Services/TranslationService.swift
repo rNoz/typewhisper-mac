@@ -9,7 +9,7 @@ final class TranslationService: ObservableObject {
 
     private var sourceText = ""
     private var continuation: CheckedContinuation<String, Error>?
-    private static let logger = Logger(subsystem: "com.typewhisper.mac", category: "Translation")
+    private static let logger = Logger(subsystem: AppConstants.loggerSubsystem, category: "Translation")
 
     func translate(text: String, to target: Locale.Language) async throws -> String {
         // Cancel any pending translation — resume with original text
