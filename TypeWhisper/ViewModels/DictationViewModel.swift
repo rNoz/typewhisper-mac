@@ -906,6 +906,10 @@ final class DictationViewModel: ObservableObject {
         if let overrideId = effectiveEngineOverrideId, modelManager.isPluginEngine(overrideId) {
             return
         }
+        // Cloud main engine selected (no override) - no local streaming preview
+        if effectiveEngineOverrideId == nil, modelManager.isCloudEngineSelected {
+            return
+        }
         let resolvedEngine = modelManager.resolveEngine(override: effectiveEngineOverrideId, cloudModelOverride: effectiveCloudModelOverride)
         guard let engine = resolvedEngine, engine.supportsStreaming else { return }
 
