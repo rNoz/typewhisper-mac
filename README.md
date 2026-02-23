@@ -18,11 +18,28 @@ Speech-to-text and AI text processing for macOS. Transcribe audio using on-devic
 
 <p align="center">
   <img src=".github/screenshots/models.png" width="340" alt="Model Manager">
-  <img src=".github/screenshots/history.png" width="340" alt="Transcription History">
+  <img src=".github/screenshots/prompts.png" width="340" alt="Custom Prompts">
 </p>
 
 <p align="center">
-  <img src=".github/screenshots/profiles.png" width="700" alt="Profiles with URL Patterns">
+  <img src=".github/screenshots/dictation.png" width="700" alt="Hotkey Configuration">
+</p>
+
+<p align="center">
+  <img src=".github/screenshots/dictionary.png" width="340" alt="Dictionary">
+  <img src=".github/screenshots/snippets.png" width="340" alt="Snippets">
+</p>
+
+<p align="center">
+  <img src=".github/screenshots/history.png" width="700" alt="Transcription History">
+</p>
+
+<p align="center">
+  <img src=".github/screenshots/profiles.png" width="700" alt="Profiles with App & URL Matching">
+</p>
+
+<p align="center">
+  <img src=".github/screenshots/plugins.png" width="700" alt="Plugin Integrations">
 </p>
 
 ## Features
