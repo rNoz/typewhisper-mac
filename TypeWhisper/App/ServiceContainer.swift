@@ -133,7 +133,8 @@ final class ServiceContainer: ObservableObject {
     func initialize() async {
         hotkeyService.setup()
         dictationViewModel.registerInitialProfileHotkeys()
-        historyService.purgeOldRecords()
+        let retentionDays = UserDefaults.standard.integer(forKey: UserDefaultsKeys.historyRetentionDays)
+        if retentionDays > 0 { historyService.purgeOldRecords(retentionDays: retentionDays) }
 
         if apiServerViewModel.isEnabled {
             apiServerViewModel.startServer()
