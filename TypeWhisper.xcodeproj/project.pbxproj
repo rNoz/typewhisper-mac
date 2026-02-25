@@ -57,7 +57,6 @@
 		AA00000000000000000073 /* TranslationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000073 /* TranslationService.swift */; };
 		AA00000000000000000074 /* AudioDuckingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000074 /* AudioDuckingService.swift */; };
 		AA00000000000000000075 /* TranslationHostWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000075 /* TranslationHostWindow.swift */; };
-		AA00000000000000000076 /* MediaPlaybackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000076 /* MediaPlaybackService.swift */; };
 		AA00000000000000000077 /* DictionaryEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000077 /* DictionaryEntry.swift */; };
 		AA00000000000000000078 /* TermPack.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000078 /* TermPack.swift */; };
 		AA00000000000000000079 /* DictionaryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000000000000000079 /* DictionaryService.swift */; };
@@ -178,7 +177,6 @@
 		BB00000000000000000073 /* TranslationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationService.swift; sourceTree = "<group>"; };
 		BB00000000000000000074 /* AudioDuckingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDuckingService.swift; sourceTree = "<group>"; };
 		BB00000000000000000075 /* TranslationHostWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationHostWindow.swift; sourceTree = "<group>"; };
-		BB00000000000000000076 /* MediaPlaybackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPlaybackService.swift; sourceTree = "<group>"; };
 		BB00000000000000000077 /* DictionaryEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictionaryEntry.swift; sourceTree = "<group>"; };
 		BB00000000000000000078 /* TermPack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TermPack.swift; sourceTree = "<group>"; };
 		BB00000000000000000079 /* DictionaryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictionaryService.swift; sourceTree = "<group>"; };
@@ -500,7 +498,6 @@
 				BB00000000000000000066 /* ProfileService.swift */,
 				BB00000000000000000073 /* TranslationService.swift */,
 				BB00000000000000000074 /* AudioDuckingService.swift */,
-				BB00000000000000000076 /* MediaPlaybackService.swift */,
 				BB00000000000000000079 /* DictionaryService.swift */,
 				BB00000000000000000081 /* SnippetService.swift */,
 				BB00000000000000000086 /* SoundService.swift */,
@@ -1030,7 +1027,6 @@
 				AA00000000000000000073 /* TranslationService.swift in Sources */,
 				AA00000000000000000074 /* AudioDuckingService.swift in Sources */,
 				AA00000000000000000075 /* TranslationHostWindow.swift in Sources */,
-				AA00000000000000000076 /* MediaPlaybackService.swift in Sources */,
 				AA00000000000000000077 /* DictionaryEntry.swift in Sources */,
 				AA00000000000000000078 /* TermPack.swift in Sources */,
 				AA00000000000000000079 /* DictionaryService.swift in Sources */,
